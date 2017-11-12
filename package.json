@@ -1,0 +1,52 @@
+{
+  "name": "simply-queue-manager",
+  "version": "0.0.1",
+  "description": "Simply queue manager",
+  "main": "queue.js",
+  "dependencies": {
+    "container": "0.0.2",
+    "localforage": "^1.5.2",
+    "lodash.groupby": "^4.6.0",
+    "lodash.orderby": "^4.6.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-es2015-parameters": "^6.24.1",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-flow": "^6.23.0",
+    "babel-preset-stage-0": "^6.24.1",
+    "babel-register": "^6.26.0",
+    "browserify": "^14.5.0",
+    "child_process": "^1.0.2",
+    "flow-bin": "^0.56.0",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^7.0.0",
+    "gulp-flowtype": "^1.0.0",
+    "gulp-watch": "^4.3.11"
+  },
+  "browserify": {
+    "transform": [
+      [
+        "babelify",
+        {
+          "presets": [
+            "es2015"
+          ]
+        }
+      ]
+    ]
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "flow": "flow"
+  },
+  "keywords": [
+    "queue",
+    "worker",
+    "jobs"
+  ],
+  "author": "Ahmet ATAY",
+  "license": "ISC"
+}
