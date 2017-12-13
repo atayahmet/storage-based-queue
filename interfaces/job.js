@@ -1,4 +1,3 @@
 export interface IJob {
-  handler: any,
-  deps: any
+  handler: any
 }

@@ -2,29 +2,37 @@
   "name": "simply-queue-manager",
   "version": "0.0.1",
   "description": "Simply queue manager",
-  "main": "queue.js",
+  "main": "index.js",
   "dependencies": {
-    "container": "0.0.2",
-    "localforage": "^1.5.2",
-    "lodash.groupby": "^4.6.0",
-    "lodash.orderby": "^4.6.0"
+    "group-by": "0.0.1",
+    "orderby-time": "^0.1.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-es2015-parameters": "^6.24.1",
-    "babel-preset-env": "^1.6.0",
+    "babel-preset-env": "^1.6.1",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-flow": "^6.23.0",
     "babel-preset-stage-0": "^6.24.1",
     "babel-register": "^6.26.0",
+    "brfs": "^1.4.3",
     "browserify": "^14.5.0",
+    "browserify-shim": "^3.8.14",
     "child_process": "^1.0.2",
     "flow-bin": "^0.56.0",
+    "growly": "^1.3.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^7.0.0",
     "gulp-flowtype": "^1.0.0",
-    "gulp-watch": "^4.3.11"
+    "gulp-watch": "^4.3.11",
+    "jasmine": "^2.8.0",
+    "karma": "^1.7.1",
+    "karma-browserify": "^5.0.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-jasmine": "^0.1.5",
+    "karma-spec-reporter": "0.0.31",
+    "watchify": "^3.9.0"
   },
   "browserify": {
     "transform": [
@@ -39,7 +47,8 @@
     ]
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "karma start",
+    "test:watch": "karma start --no-single-run --auto-watch",
     "flow": "flow"
   },
   "keywords": [
