@@ -2,7 +2,7 @@
   "name": "simply-queue-manager",
   "version": "0.0.1",
   "description": "Simply queue manager",
-  "main": "index.js",
+  "main": "es6/queue.js",
   "dependencies": {
     "group-by": "0.0.1",
     "orderby-time": "^0.1.0"
@@ -11,6 +11,7 @@
     "babel-cli": "^6.26.0",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-es2015-parameters": "^6.24.1",
+    "babel-plugin-transform-flow-strip-types": "^6.22.0",
     "babel-preset-env": "^1.6.1",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-flow": "^6.23.0",
@@ -25,6 +26,9 @@
     "gulp": "^3.9.1",
     "gulp-babel": "^7.0.0",
     "gulp-flowtype": "^1.0.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-streamify": "^1.0.2",
+    "gulp-uglify": "^3.0.0",
     "gulp-watch": "^4.3.11",
     "jasmine": "^2.8.0",
     "karma": "^1.7.1",
