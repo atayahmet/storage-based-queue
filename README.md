@@ -6,6 +6,10 @@ You can run jobs over the channels as asynchronous that saved regularly.
 
 This library just a solution method for some use cases. Today, there are different technologies that fulfill the similar process.
 
+[![Dependency Status](https://img.shields.io/david/atayahmet/storage-based-queue.svg?style=flat-square)](https://david-dm.org/atayahmet/storage-based-queue)
+[![devDependencies Status](https://david-dm.org/atayahmet/storage-based-queue/dev-status.svg)](https://david-dm.org/atayahmet/storage-based-queue?type=dev)
+[![Known Vulnerabilities](https://snyk.io/test/github/atayahmet/storage-based-queue/badge.svg)](https://snyk.io/test/github/atayahmet/storage-based-queue)
+
 ## Quick Start
 
 **Worker class:**
