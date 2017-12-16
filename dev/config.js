@@ -1,35 +1,35 @@
-
-
+/* @flow */
+import type IConfig from '../interfaces/config';
 import configData from './config.data';
 
 export default class Config {
+  config: IConfig = configData;
 
-
-  constructor() {let config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};this.config = configData;
+  constructor(config: IConfig = {}) {
     this.merge(config);
   }
 
-  set(name, value) {
+  set(name: string, value: any): void {
     this.config[name] = value;
   }
 
-  get(name) {
+  get(name: string): any {
     return this.config[name];
   }
 
-  has(name) {
+  has(name: string) {
     return Object.prototype.hasOwnProperty.call(this.config, name);
   }
 
-  merge(config) {
+  merge(config: {[string]: any}) {
     this.config = Object.assign({}, this.config, config);
   }
 
-  remove(name) {
+  remove(name: string): boolean {
     return delete this.config[name];
   }
 
-  all() {
+  all(): IConfig {
     return this.config;
-  }}
-
+  }
+}

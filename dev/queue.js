@@ -1,27 +1,27 @@
-
-
-
-
+/* @flow */
+import type IConfig from "../interfaces/config";
+import type ITask from "../interfaces/task";
+import type IJob from "../interfaces/job";
 import Container from "./container";
 import StorageCapsule from "./storage-capsule";
 import Config from "./config";
 import Event from "./event";
 import {
-clone,
-hasMethod,
-isFunction,
-excludeSpecificTasks,
-utilClearByTag } from
-"./utils";
+  clone,
+  hasMethod,
+  isFunction,
+  excludeSpecificTasks,
+  utilClearByTag
+} from "./utils";
 import LocalStorage from "./storage/localstorage";
 
-
-
-
-
-
-
-
+interface IJobInstance {
+  priority: number;
+  retry: number;
+  handle(args: any): any;
+  before(args: any): void;
+  after(args: any): void;
+}
 
 let Queue = (() => {
   "use strict";
@@ -29,7 +29,7 @@ let Queue = (() => {
   Queue.FIFO = "fifo";
   Queue.LIFO = "lifo";
 
-  function Queue(config) {
+  function Queue(config: IConfig) {
     _constructor.call(this, config);
   }
 
@@ -41,15 +41,15 @@ let Queue = (() => {
     this.channels = {};
     this.config = new Config(config);
     this.storage = new StorageCapsule(
-    this.config,
-    new LocalStorage(this.config));
-
+      this.config,
+      new LocalStorage(this.config)
+    );
     this.event = new Event();
     this.container = new Container();
     this.timeout = this.config.get("timeout");
   }
 
-  Queue.prototype.add = function (task) {
+  Queue.prototype.add = function(task) {
     const id = saveTask.call(this, task);
 
     if (id && this.stopped && this.running === true) {
@@ -59,7 +59,7 @@ let Queue = (() => {
     return id;
   };
 
-  Queue.prototype.next = function () {
+  Queue.prototype.next = function() {
     if (this.stopped) {
       console.log("[stopped]-> next");
       statusOff.call(this);
@@ -69,7 +69,7 @@ let Queue = (() => {
     this.start();
   };
 
-  Queue.prototype.start = function () {
+  Queue.prototype.start = function(): boolean {
     // Stop the queue for restart
     this.stopped = false;
 
@@ -82,17 +82,17 @@ let Queue = (() => {
     return this.running;
   };
 
-  Queue.prototype.stop = function () {
+  Queue.prototype.stop = function() {
     console.log("[stopping]->");
     this.stopped = true; //this.running;
   };
 
-  Queue.prototype.forceStop = function () {
+  Queue.prototype.forceStop = function() {
     console.log("[forceStopped]->");
     stopQueue.call(this);
   };
 
-  Queue.prototype.create = function (channel) {
+  Queue.prototype.create = function(channel: string) {
     if (!(channel in this.channels)) {
       this.currentChannel = channel;
       this.channels[channel] = clone(this);
@@ -101,7 +101,7 @@ let Queue = (() => {
     return this.channels[channel];
   };
 
-  Queue.prototype.channel = function (name) {
+  Queue.prototype.channel = function(name: string) {
     if (!this.channels[name]) {
       throw new Error(`Channel of "${name}" not found`);
     }
@@ -109,66 +109,66 @@ let Queue = (() => {
     return this.channels[name];
   };
 
-  Queue.prototype.isEmpty = function () {
+  Queue.prototype.isEmpty = function(): boolean {
     return this.count() < 1;
   };
 
-  Queue.prototype.count = function () {
+  Queue.prototype.count = function(): Array<ITask> {
     return getTasksWithoutFreezed.call(this).length;
   };
 
-  Queue.prototype.countByTag = function (tag) {
+  Queue.prototype.countByTag = function(tag: string): Array<ITask> {
     return getTasksWithoutFreezed.call(this).filter(t => t.tag === tag).length;
   };
 
-  Queue.prototype.clear = function () {
+  Queue.prototype.clear = function(): void {
     if (this.currentChannel) {
       this.storage.clear(this.currentChannel);
     }
   };
 
-  Queue.prototype.clearByTag = function (tag) {
-    db.
-    call(this).
-    all().
-    filter(utilClearByTag.bind(tag)).
-    forEach(t => db.call(this).delete(t._id));
+  Queue.prototype.clearByTag = function(tag: string): void {
+    db
+      .call(this)
+      .all()
+      .filter(utilClearByTag.bind(tag))
+      .forEach(t => db.call(this).delete(t._id));
   };
 
-  Queue.prototype.has = function (id) {
+  Queue.prototype.has = function(id: string): boolean {
     return getTasksWithoutFreezed.call(this).findIndex(t => t._id === id) > -1;
   };
 
-  Queue.prototype.hasByTag = function (tag) {
+  Queue.prototype.hasByTag = function(tag: string): boolean {
     return getTasksWithoutFreezed.call(this).findIndex(t => t.tag === tag) > -1;
   };
 
-  Queue.prototype.setTimeout = function (val) {
+  Queue.prototype.setTimeout = function(val: number) {
     this.timeout = val;
     this.config.get("timeout", val);
   };
 
-  Queue.prototype.setMax = function (val) {
+  Queue.prototype.setMax = function(val: number) {
     this.config.get("max", val);
   };
 
-  Queue.prototype.setPrefix = function (val) {
+  Queue.prototype.setPrefix = function(val: number) {
     this.config.get("prefix", val);
   };
 
-  Queue.prototype.setPrinciple = function (val) {
+  Queue.prototype.setPrinciple = function(val: number) {
     this.config.get("principle", val);
   };
 
-  Queue.prototype.on = function (key, cb) {
+  Queue.prototype.on = function(key: string, cb: Function): void {
     this.event.on(...arguments);
   };
 
-  Queue.prototype.error = function (cb) {
+  Queue.prototype.error = function(cb: Function): void {
     this.event.on("error", cb);
   };
 
-  Queue.register = function (jobs) {
+  Queue.register = function(jobs: Array<IJob>) {
     if (!(jobs instanceof Array)) {
       throw new Error("Queue jobs should be objects within an array");
     }
@@ -178,13 +178,13 @@ let Queue = (() => {
   };
 
   function getTasksWithoutFreezed() {
-    return db.
-    call(this).
-    all().
-    filter(excludeSpecificTasks.bind(["freezed"]));
+    return db
+      .call(this)
+      .all()
+      .filter(excludeSpecificTasks.bind(["freezed"]));
   }
 
-  function dispatchEvents(task, type) {
+  function dispatchEvents(task: ITask, type: string) {
     if ("tag" in task) {
       this.event.emit(`${task.tag}:${type}`, task);
       this.event.emit(`${task.tag}:*`, task);
@@ -195,15 +195,15 @@ let Queue = (() => {
     return this.storage.channel(this.currentChannel);
   }
 
-  function saveTask(task) {
+  function saveTask(task: ITask) {
     return db.call(this).save(task);
   }
 
-  function saveTask(task) {
+  function saveTask(task: ITask) {
     return db.call(this).save(checkPriority(task));
   }
 
-  function checkPriority(task) {
+  function checkPriority(task: ITask) {
     task.priority = task.priority || 0;
 
     if (isNaN(task.priority)) task.priority = 0;
@@ -211,25 +211,25 @@ let Queue = (() => {
     return task;
   }
 
-  function createTimeout() {
+  function createTimeout(): number {
     const timeout = this.config.get("timeout");
-    return this.currentTimeout = setTimeout(loopHandler.bind(this), timeout);
+    return (this.currentTimeout = setTimeout(loopHandler.bind(this), timeout));
   }
 
-  function lockTask(task) {
+  function lockTask(task): boolean {
     return db.call(this).update(task._id, { locked: true });
   }
 
-  function removeTask(id) {
+  function removeTask(id: string): boolean {
     return db.call(this).delete(id);
   }
 
-  function loopHandler() {
-    const self = this;
-    const task = db.
-    call(self).
-    fetch().
-    shift();
+  function loopHandler(): void {
+    const self: Queue = this;
+    const task: ITask = db
+      .call(self)
+      .fetch()
+      .shift();
 
     if (task === undefined) {
       console.log("queue empty...");
@@ -241,8 +241,8 @@ let Queue = (() => {
       console.warn(task.handler + "-> job not found");
     }
 
-    const job = self.container.get(task.handler);
-    const jobInstance = new job.handler();
+    const job: IJob = self.container.get(task.handler);
+    const jobInstance: IJobInstance = new job.handler();
 
     // lock the current task for prevent race condition
     lockTask.call(self, task);
@@ -257,15 +257,15 @@ let Queue = (() => {
     const dependencies = Object.values(job.deps || {});
 
     // Task runner promise
-    jobInstance.handle.
-    call(jobInstance, task.args, ...dependencies).
-    then(jobResponse.call(self, task, jobInstance).bind(self)).
-    catch(jobFailedResponse.call(self, task, jobInstance).bind(self));
+    jobInstance.handle
+      .call(jobInstance, task.args, ...dependencies)
+      .then(jobResponse.call(self, task, jobInstance).bind(self))
+      .catch(jobFailedResponse.call(self, task, jobInstance).bind(self));
   }
 
-  function jobResponse(task, job) {
-    const self = this;
-    return function (result) {
+  function jobResponse(task: ITask, job: IJobInstance): Function {
+    const self: Queue = this;
+    return function(result: boolean) {
       if (result) {
         successProcess.call(self, task, job);
       } else {
@@ -283,8 +283,8 @@ let Queue = (() => {
     };
   }
 
-  function jobFailedResponse(task, job) {
-    return result => {
+  function jobFailedResponse(task: ITask, job: IJobInstance): Function {
+    return (result: boolean) => {
       removeTask.call(this, task._id);
 
       this.event.emit("error", task);
@@ -294,10 +294,10 @@ let Queue = (() => {
   }
 
   function fireJobInlineEvent(
-  name,
-  job,
-  args)
-  {
+    name: string,
+    job: IJobInstance,
+    args: any
+  ): void {
     if (!hasMethod(job, name)) return;
 
     if (name == "before" && isFunction(job.before)) {
@@ -307,11 +307,11 @@ let Queue = (() => {
     }
   }
 
-  function statusOff() {
+  function statusOff(): void {
     this.running = false;
   }
 
-  function stopQueue() {
+  function stopQueue(): void {
     this.stop();
 
     if (this.currentTimeout) {
@@ -320,16 +320,16 @@ let Queue = (() => {
     }
   }
 
-  function successProcess(task, job) {
+  function successProcess(task: ITask, job: IJobInstance): void {
     removeTask.call(this, task._id);
   }
 
-  function retryProcess(task, job) {
+  function retryProcess(task: ITask, job: IJobInstance): boolean {
     // dispacth custom retry event
     dispatchEvents.call(this, task, "retry");
 
     // update retry value
-    let updateTask = updateRetry.call(this, task, job);
+    let updateTask: ITask = updateRetry.call(this, task, job);
 
     // delete lock property for next process
     updateTask.locked = false;
@@ -337,7 +337,7 @@ let Queue = (() => {
     return db.call(this).update(task._id, updateTask);
   }
 
-  function updateRetry(task, job) {
+  function updateRetry(task: ITask, job: IJobInstance): ITask {
     if (!("retry" in job)) {
       job.retry = 1;
     }
@@ -356,7 +356,7 @@ let Queue = (() => {
     return task;
   }
 
-  function registerJobs() {
+  function registerJobs(): void {
     if (Queue.isRegistered) return;
 
     const jobs = Queue.jobs || [];
@@ -374,4 +374,3 @@ let Queue = (() => {
 })();
 
 export default Queue;
-

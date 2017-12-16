@@ -1,17 +1,17 @@
+/* @flow */
+import type IContainer from '../interfaces/container';
 
+export default class Container implements IContainer {
 
+  constructor() {}
 
-export default class Container {
+  _container: {[property: string]: any} = {};
 
-  constructor() {this.
-
-    _container = {};}
-
-  has(id) {
+  has(id: string): boolean {
     return Object.prototype.hasOwnProperty.call(this._container, id);
   }
 
-  get(id) {
+  get(id: string): any {
     return this._container[id];
   }
 
@@ -19,17 +19,17 @@ export default class Container {
     return this._container;
   }
 
-  bind(id, value) {
+  bind(id: string, value: any): void {
     this._container[id] = value;
   }
 
-  remove(id) {
+  remove(id: string): void {
     if (Object.prototype.hasOwnProperty.call(this._container, id)) {
       delete this._container[id];
     }
   }
 
-  removeAll() {
+  removeAll(): void {
     this._container = {};
-  }}
-
+  }
+}

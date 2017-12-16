@@ -1,45 +1,45 @@
+/* @flow */
 
-
-import groupBy from 'group-by';
+import groupBy from 'group-by'
 import orderBy from 'orderby-time';
 import LocalStorage from './storage/localstorage';
-
-
-
+import type IConfig from '../interfaces/config';
+import type IStorage from '../interfaces/storage';
+import type ITask from '../interfaces/task';
 import Config from './config';
 import { excludeSpecificTasks } from './utils';
 
 export default class StorageCapsule {
+  storage: IStorage;
+  storageChannel: string;
 
-
-
-  constructor(config, storage) {
+  constructor(config: Config, storage: IStorage) {
     this.storage = storage;
   }
 
-  channel(name) {
+  channel(name: string): StorageCapsule {
     this.storageChannel = name;
     return this;
   }
 
-  fetch() {
+  fetch(): Array<any> {
     const all = this.all().filter(excludeSpecificTasks);
     const tasks = groupBy(all, 'priority');
-    return Object.
-    keys(tasks).
-    map(key => parseInt(key)).
-    sort((a, b) => b - a).
-    reduce((result, key) => result.concat(orderBy('createdAt', tasks[key])), []);
+    return Object
+      .keys(tasks)
+      .map(key => parseInt(key))
+      .sort((a, b) => b - a)
+      .reduce((result, key) => result.concat(orderBy('createdAt', tasks[key])), []);
   }
 
-  save(task) {
+  save(task: ITask): string|boolean {
     try {
       // prepare all properties before save
       // example: createdAt etc.
       task = this.prepareTask(task);
 
       // get all tasks current channel's
-      const tasks = this.storage.get(this.storageChannel);
+      const tasks: any[] = this.storage.get(this.storageChannel);
 
       // add task to storage
       tasks.push(task);
@@ -48,15 +48,15 @@ export default class StorageCapsule {
       this.storage.set(this.storageChannel, JSON.stringify(tasks));
 
       return task._id;
-    } catch (e) {
+    } catch(e) {
       return false;
     }
   }
 
-  update(id, update) {
+  update(id: string, update: {[property: string]: any}): boolean {
     try {
-      const data = this.all();
-      const index = data.findIndex(t => t._id == id);
+      const data: any[] = this.all();
+      const index: number = data.findIndex(t => t._id == id);
 
       if (index < 0) return false;
 
@@ -67,15 +67,15 @@ export default class StorageCapsule {
       this.storage.set(this.storageChannel, JSON.stringify(data));
 
       return true;
-    } catch (e) {
+    } catch(e) {
       return false;
     }
   }
 
-  delete(id) {
+  delete(id: string): boolean {
     try {
-      const data = this.all();
-      const index = data.findIndex(d => d._id === id);
+      const data: any[] = this.all();
+      const index: number = data.findIndex(d => d._id === id);
 
       if (index < 0) return false;
 
@@ -83,26 +83,26 @@ export default class StorageCapsule {
 
       this.storage.set(this.storageChannel, JSON.stringify(data.filter(d => d)));
       return true;
-    } catch (e) {
+    } catch(e) {
       return false;
     }
   }
 
-  all() {
+  all(): Array<any> {
     return this.storage.get(this.storageChannel);
   }
 
-  generateId() {
+  generateId(): string {
     return ((1 + Math.random()) * 0x10000).toString(16);
   }
 
-  prepareTask(task) {
+  prepareTask(task: ITask): ITask {
     task.createdAt = Date.now();
     task._id = this.generateId();
     return task;
   }
 
-  clear(channel) {
+  clear(channel: string): void {
     this.storage.clear(channel);
-  }}
-
+  }
+}

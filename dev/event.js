@@ -1,10 +1,10 @@
 export default class Event {
+  store = {};
+  verifierPattern = /^[a-z0-9\-\_]+\:before$|after$|retry$|\*$/;
+  wildcards = ['*', 'error'];
+  emptyFunc = () => {};
 
-
-
-
-
-  constructor() {this.store = {};this.verifierPattern = /^[a-z0-9\-\_]+\:before$|after$|retry$|\*$/;this.wildcards = ['*', 'error'];this.emptyFunc = () => {};
+  constructor() {
     this.store.before = {};
     this.store.after = {};
     this.store.retry = {};
@@ -13,12 +13,12 @@ export default class Event {
     this.store['*'] = this.emptyFunc;
   }
 
-  on(key, cb) {
-    if (typeof cb !== 'function') throw new Error('Event should be an function');
+  on(key: string, cb: Function): void {
+    if (typeof(cb) !== 'function') throw new Error('Event should be an function');
     if (this.isValid(key)) this.add(key, cb);
   }
 
-  emit(key, args) {
+  emit(key: string, args: any) {
     if (this.wildcards.indexOf(key) > -1) {
       this.wildcard(key, ...arguments);
     } else {
@@ -34,14 +34,14 @@ export default class Event {
     this.wildcard('*', key, args);
   }
 
-  wildcard(key, actionKey, args) {
+  wildcard(key: string, actionKey: string, args: any) {
     if (this.store.wildcard[key]) {
       this.store.wildcard[key].call(null, actionKey, args);
     }
   }
 
-  add(key, cb) {
-    if (this.wildcards.indexOf(key) > -1) {
+  add(key: string, cb: Function): void {
+    if (this.wildcards.indexOf(key) >-1) {
       this.store.wildcard[key] = cb;
     } else {
       const type = this.getType(key);
@@ -50,24 +50,24 @@ export default class Event {
     }
   }
 
-  has(key) {
+  has(key: string) {
     try {
       const keys = key.split(':');
-      return keys.length > 1 ? !!this.store[keys[1]][keys[0]] : !!this.store.wildcard[keys[0]];
-    } catch (e) {
+      return keys.length > 1 ? !! this.store[keys[1]][keys[0]] : !! this.store.wildcard[keys[0]];
+    } catch(e) {
       return false;
     }
   }
 
-  getName(key) {
+  getName(key: string): string {
     return key.match(/(.*)\:.*/)[1];
   }
 
-  getType(key) {
+  getType(key: string): string {
     return key.match(/^[a-z0-9\-\_]+\:(.*)/)[1];
   }
 
-  isValid(key) {
-    return this.verifierPattern.test(key) || this.wildcards.indexOf(key) > -1;
-  }}
-
+  isValid(key: string) {
+    return this.verifierPattern.test(key) || this.wildcards.indexOf(key) >-1;
+  }
+}

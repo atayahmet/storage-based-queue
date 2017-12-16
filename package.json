@@ -2,7 +2,7 @@
   "name": "simply-queue-manager",
   "version": "0.0.2",
   "description": "Simply queue manager",
-  "main": "es6/queue.js",
+  "main": "lib/queue.js",
   "dependencies": {
     "group-by": "0.0.1",
     "orderby-time": "^0.1.0"
