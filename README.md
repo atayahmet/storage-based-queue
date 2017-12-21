@@ -1,4 +1,9 @@
-# Storage Based Queue
+[![Dependency Status](https://img.shields.io/david/atayahmet/storage-based-queue.svg?style=flat-square)](https://david-dm.org/atayahmet/storage-based-queue)
+[![devDependencies Status](https://david-dm.org/atayahmet/storage-based-queue/dev-status.svg)](https://david-dm.org/atayahmet/storage-based-queue?type=dev)
+[![Known Vulnerabilities](https://snyk.io/test/github/atayahmet/storage-based-queue/badge.svg)](https://snyk.io/test/github/atayahmet/storage-based-queue)
+
+
+# Storage Based Queue on Browser
 
 Storage based queue processing mechanism. Today, many backend technology is a simple derivative of the queuing systems used in the browser environment.
 
@@ -8,15 +13,11 @@ This library just a solution method for some use cases. Today, there are differe
 
 ## How it works?
 
-Data regularly store added to queue pool. Storing queue data is also inspired by the JSON-RPC method. When the queue is started, the queues start to be processed sequentially in the specified range according to the sorting algorithm.
+Data regularly store (local storage for now) added to queue pool. Storing queue data is also inspired by the [JSON-RPC](http://www.jsonrpc.org/) method. When the queue is started, the queues start to be processed sequentially in the specified range according to the sorting algorithm.
 
 If any exceptions occur while the worker classes are processing, the current queue is reprocessed to try again. The task is frozen when it reaches the defined retry value.
 
-Worker classes should return boolean (true / false) data with the Promise class as the return value. The return Promise / resolve (true) must be true if a task is successfully completed and you want to pass the next task. A possible exception should also be tried again: Promise / resolve (false). If we do not want the task to be retried and we want to pass the next task: Promise / reject ('any value')
-
-[![Dependency Status](https://img.shields.io/david/atayahmet/storage-based-queue.svg?style=flat-square)](https://david-dm.org/atayahmet/storage-based-queue)
-[![devDependencies Status](https://david-dm.org/atayahmet/storage-based-queue/dev-status.svg)](https://david-dm.org/atayahmet/storage-based-queue?type=dev)
-[![Known Vulnerabilities](https://snyk.io/test/github/atayahmet/storage-based-queue/badge.svg)](https://snyk.io/test/github/atayahmet/storage-based-queue)
+Worker classes should return `boolean` `(true / false)` data with the Promise class as the return value. The return `Promise / resolve (true)` must be true if a task is successfully **completed** and you want to pass the next task. A possible exception should also be **tried** again: `Promise / resolve (false)`. If we do not want the task to be retried and we want to pass the next task: `Promise / reject ('any value')`
 
 ## Quick Start
 
