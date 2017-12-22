@@ -1,6 +1,6 @@
 {
   "name": "simply-queue-manager",
-  "version": "0.0.5",
+  "version": "0.0.5-beta",
   "description": "Simply queue manager",
   "main": "lib/queue.js",
   "dependencies": {
