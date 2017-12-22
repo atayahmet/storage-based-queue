@@ -15,7 +15,14 @@ module.exports = function(karma) {
       'test/**/*Spec.js': [ 'browserify' ]
     },
 
-    browsers: [ 'Chrome' ],
+    browsers: [ 'ChromeHeadless'],
+
+    customLaunchers: {
+      Chrome_without_security: {
+        base: 'Chrome',
+        flags: ['--disable-web-security']
+      }
+    },
 
     logLevel: 'LOG_DEBUG',
 

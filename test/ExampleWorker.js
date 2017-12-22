@@ -11,11 +11,11 @@ export default class SendEmail {
       console.log(e);
     }
   }
-  before(args: any) {
+  before(args) {
     console.log('before event', args);
   }
 
-  after(args: any) {
+  after(args) {
     console.log('after event', args);
   }
 }

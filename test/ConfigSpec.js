@@ -1,7 +1,7 @@
 import Config from "../lib/config";
 
 describe('Config class tests', () => {
-  let config: Config;
+  let config;
 
   beforeEach(() => {
     config = new Config

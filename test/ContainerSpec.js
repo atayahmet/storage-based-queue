@@ -1,7 +1,7 @@
 import Container from "../lib/container";
 
 describe('Container class tests', () => {
-  let container: Container, defaultCallback: Function, spyCb;
+  let container, defaultCallback, spyCb;
 
   beforeEach(() => {
     container = new Container;
