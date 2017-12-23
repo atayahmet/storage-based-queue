@@ -17,16 +17,9 @@ module.exports = function(karma) {
 
     browsers: [ 'ChromeHeadless'],
 
-    customLaunchers: {
-      Chrome_without_security: {
-        base: 'Chrome',
-        flags: ['--disable-web-security']
-      }
-    },
-
     logLevel: 'LOG_DEBUG',
 
-    singleRun: false,
+    singleRun: true,
     autoWatch: false,
 
     // browserify configuration

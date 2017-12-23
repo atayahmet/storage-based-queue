@@ -21,6 +21,30 @@ Worker classes should return `boolean` `(true / false)` data with the Promise cl
 
 ## Quick Start
 
+### Installation
+
+```sh
+$ npm install storage-based-queue --save
+```
+
+**import:**
+
+```javascript
+import * as Queue from 'storage-based-queue';
+```
+
+**import via script tag:**
+
+```html
+<script type="text/javascript" src="node_modules/storage-based-queue/dist/queue.js">
+```
+
+**Create instance:**
+
+```javascript
+new Queue;
+```
+
 **Worker class:**
 
 ```javascript
@@ -81,6 +105,15 @@ The queue will start automatically because we have already started the **start()
 | prefix      | string | Storage key name prefix for jobs. Default: `sq_jobs`
 | timeout      | integer      |   Worker delay time of between two taks. Default: `1000` |
 | max | integer      | Runnable task limit. Default: `-1 (limitless)` |
+
+## Sorting Algorithms
+
+| Name   |  Description  |
+| -------|:--------------|
+| FIFO   | First In First Out (Default)|
+| LIFO   | Last In First Out |
+
+Detail information: [FIFO and LIFO](https://en.wikipedia.org/wiki/FIFO_and_LIFO_accounting)
 
 **Example:**
 
@@ -277,3 +310,8 @@ Checks a task by tag.
 ```javascript
 channel.hasByTag('email-sender');
 ```
+
+## Documentaion
+
+## License
+MIT license

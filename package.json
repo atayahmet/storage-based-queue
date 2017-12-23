@@ -52,7 +52,7 @@
     ]
   },
   "scripts": {
-    "test": "karma start --no-single-run --auto-watch --browsers ChromeHeadless",
+    "test": "karma start --browsers ChromeHeadless",
     "test:watch": "karma start --no-single-run --auto-watch",
     "flow": "flow"
   },
