@@ -1,0 +1,11 @@
+[ignore]
+.*/node_modules/.*
+[include]
+[libs]
+./flow-typed/localforage
+./flow-typed/debug
+./flow-typed/lodash.groupby
+
+[lints]
+
+[options]

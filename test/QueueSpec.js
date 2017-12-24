@@ -19,6 +19,7 @@ describe('Queue class tests', () => {
 
   afterEach(() => {
     storage.clear('channel-a');
+    queue.setLimit(-1);
   })
 
   it('should be add new task to queue, -> add()', () => {
@@ -219,5 +220,20 @@ describe('Queue class tests', () => {
     expect(channelA.hasByTag('member-register')).toBeFalsy();
     const id = channelA.add({tag: 'member-register', handler: 'SendEmail', priority: 1, args: 'any parameters'});
     expect(channelA.hasByTag('member-register')).toBeTruthy();
+  });
+
+  it('should be set limit value of config, -> setLimit()', () => {
+    queue.setLimit(1);
+    const channelA = queue.create('channel-a');
+    channelA.add({tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'any parameters'});
+    channelA.add({tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'any parameters'});
+    expect(channelA.count()).toEqual(1);
+  });
+
+  it('should be set prefix value of config, ->setPrefix()', () => {
+    queue.setPrefix('browser_queue');
+    const channelA = queue.create('channel-a');
+    channelA.add({tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'any parameters'});
+    expect(localStorage['browser_queue_channel-a']).toBeDefined();
   });
 });

@@ -52,3 +52,11 @@ export function utilClearByTag(task: ITask): boolean {
   }
   return task.tag === this;
 }
+
+export function fifo(a: ITask, b: ITask) {
+  return a.createdAt - b.createdAt;
+}
+
+export function lifo(a: ITask, b: ITask) {
+  return b.createdAt - a.createdAt;
+}

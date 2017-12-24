@@ -7,12 +7,10 @@ import type IJob from '../../interfaces/job';
 export default class LocalStorage implements IStorage {
   storage: Object;
   config: IConfig;
-  prefix: string;
 
   constructor(config: IConfig) {
     this.storage = localStorage;
     this.config = config;
-    this.prefix = config.get('storage').prefix;
   }
 
   get(key: string): Array<IJob|[]> {
@@ -41,6 +39,10 @@ export default class LocalStorage implements IStorage {
   }
 
   storageName(suffix: string) {
-    return `${this.prefix}_${suffix}`;
+    return `${this.getPrefix()}_${suffix}`;
+  }
+
+  getPrefix() {
+    return this.config.get('prefix');
   }
 }

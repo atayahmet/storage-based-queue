@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/atayahmet/storage-based-queue.svg?branch=v0.0.5-beta5)](https://travis-ci.org/atayahmet/storage-based-queue)
 [![Dependency Status](https://img.shields.io/david/atayahmet/storage-based-queue.svg?style=flat-square)](https://david-dm.org/atayahmet/storage-based-queue)
 [![devDependencies Status](https://david-dm.org/atayahmet/storage-based-queue/dev-status.svg)](https://david-dm.org/atayahmet/storage-based-queue?type=dev)
 [![Known Vulnerabilities](https://snyk.io/test/github/atayahmet/storage-based-queue/badge.svg)](https://snyk.io/test/github/atayahmet/storage-based-queue)
@@ -104,7 +105,7 @@ The queue will start automatically because we have already started the **start()
 | ------------- |:-------------| :-----|
 | prefix      | string | Storage key name prefix for jobs. Default: `sq_jobs`
 | timeout      | integer      |   Worker delay time of between two taks. Default: `1000` |
-| max | integer      | Runnable task limit. Default: `-1 (limitless)` |
+| limit | integer      | Runnable task limit. Default: `-1 (limitless)` |
 
 ## Sorting Algorithms
 
@@ -118,7 +119,7 @@ Detail information: [FIFO and LIFO](https://en.wikipedia.org/wiki/FIFO_and_LIFO_
 **Example:**
 
 ```javascript
-const queue = new Queue({prefix: 'my-Queue', timeout: 1500, max: 50, principle: Queue.FIFO})
+const queue = new Queue({prefix: 'my-Queue', timeout: 1500, limit: 50, principle: Queue.FIFO})
 ```
 
 Other ways config the queue (runtime):
@@ -126,7 +127,7 @@ Other ways config the queue (runtime):
 ```javascript
 const queue = new Queue;
 queue.setTimeout(15000);
-queue.setMax(50);
+queue.setLimit(50);
 queue.setPrefix('my-Queue');
 queue.setPrinciple(Queue.LIFO);
 ```

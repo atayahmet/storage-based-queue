@@ -16,7 +16,7 @@ describe('Storage capsule class tests', () => {
   });
 
   afterEach(() => {
-    // lStorage.clearAll();
+    config.set('limit', -1);
   });
 
   it('should be select channel, -> channel()', () => {
@@ -39,6 +39,22 @@ describe('Storage capsule class tests', () => {
 
     expect(task._id).toBeDefined();
     expect(task.createdAt).toBeDefined();
+  });
+
+  it('should be not insert new task, if task limit exceeded, -> save()', () => {
+    storage.channel('test-1');
+
+    config.set('limit', 1);
+    spyOn(storage, 'isExceeded').andReturn(false).andCallThrough();
+    expect(storage.save(exmpTask)).toBeTruthy();
+
+    expect(storage.save(exmpTask)).toBeFalsy();
+    expect(storage.fetch().length).toEqual(1);
+
+    config.set('limit', 2);
+    expect(storage.save(exmpTask)).toBeTruthy();
+    expect(storage.fetch().length).toEqual(2);
+    expect(storage.save(exmpTask)).toBeFalsy();
   });
 
   it('should be update task in storage, -> update()', () => {

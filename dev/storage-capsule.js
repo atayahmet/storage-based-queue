@@ -1,20 +1,21 @@
 /* @flow */
 
 import groupBy from 'group-by'
-import orderBy from 'orderby-time';
 import LocalStorage from './storage/localstorage';
 import type IConfig from '../interfaces/config';
 import type IStorage from '../interfaces/storage';
 import type ITask from '../interfaces/task';
 import Config from './config';
-import { excludeSpecificTasks } from './utils';
+import { excludeSpecificTasks, lifo, fifo } from './utils';
 
 export default class StorageCapsule {
+  config: IConfig
   storage: IStorage;
   storageChannel: string;
 
-  constructor(config: Config, storage: IStorage) {
+  constructor(config: IConfig, storage: IStorage) {
     this.storage = storage;
+    this.config = config;
   }
 
   channel(name: string): StorageCapsule {
@@ -29,17 +30,30 @@ export default class StorageCapsule {
       .keys(tasks)
       .map(key => parseInt(key))
       .sort((a, b) => b - a)
-      .reduce((result, key) => result.concat(orderBy('createdAt', tasks[key])), []);
+      .reduce((result, key) => {
+        if (this.config.get('principle') === 'lifo') {
+          return result.concat(tasks[key].sort(lifo));
+        } else {
+          return result.concat(tasks[key].sort(fifo));
+        }
+      }, []);
   }
 
   save(task: ITask): string|boolean {
     try {
+      // get all tasks current channel's
+      const tasks: ITask[] = this.storage.get(this.storageChannel);
+
+      // check channel limit.
+      // if limit is exceeded, does not insert new task
+      if (this.isExceeded()) {
+        console.warn(`Task limit exceeded: The '${this.storageChannel}' channel limit is ${this.config.get('limit')}`);
+        return false;
+      }
+
       // prepare all properties before save
       // example: createdAt etc.
       task = this.prepareTask(task);
-
-      // get all tasks current channel's
-      const tasks: any[] = this.storage.get(this.storageChannel);
 
       // add task to storage
       tasks.push(task);
@@ -100,6 +114,12 @@ export default class StorageCapsule {
     task.createdAt = Date.now();
     task._id = this.generateId();
     return task;
+  }
+
+  isExceeded(): boolean {
+    const limit: number = this.config.get('limit');
+    const tasks: ITask[] = this.all().filter(excludeSpecificTasks);
+    return ! (limit === -1 || limit > tasks.length);
   }
 
   clear(channel: string): void {

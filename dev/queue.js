@@ -143,21 +143,21 @@ let Queue = (() => {
     return getTasksWithoutFreezed.call(this).findIndex(t => t.tag === tag) > -1;
   };
 
-  Queue.prototype.setTimeout = function(val: number) {
+  Queue.prototype.setTimeout = function(val: number): void {
     this.timeout = val;
-    this.config.get("timeout", val);
+    this.config.set("timeout", val);
   };
 
-  Queue.prototype.setMax = function(val: number) {
-    this.config.get("max", val);
+  Queue.prototype.setLimit = function(val: number): void {
+    this.config.set("limit", val);
   };
 
-  Queue.prototype.setPrefix = function(val: number) {
-    this.config.get("prefix", val);
+  Queue.prototype.setPrefix = function(val: string): void {
+    this.config.set("prefix", val);
   };
 
-  Queue.prototype.setPrinciple = function(val: number) {
-    this.config.get("principle", val);
+  Queue.prototype.setPrinciple = function(val: string): void {
+    this.config.set("principle", val);
   };
 
   Queue.prototype.on = function(key: string, cb: Function): void {
@@ -232,7 +232,7 @@ let Queue = (() => {
       .shift();
 
     if (task === undefined) {
-      console.log("queue empty...");
+      console.log(`-> ${this.currentChannel} channel is empty...`);
       stopQueue.call(this);
       return;
     }
