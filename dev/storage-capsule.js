@@ -1,15 +1,15 @@
 /* @flow */
 
-import groupBy from 'group-by'
-import LocalStorage from './storage/localstorage';
-import type IConfig from '../interfaces/config';
-import type IStorage from '../interfaces/storage';
-import type ITask from '../interfaces/task';
-import Config from './config';
-import { excludeSpecificTasks, lifo, fifo } from './utils';
+import groupBy from "group-by";
+import LocalStorage from "./storage/localstorage";
+import type IConfig from "../interfaces/config";
+import type IStorage from "../interfaces/storage";
+import type ITask from "../interfaces/task";
+import Config from "./config";
+import { excludeSpecificTasks, lifo, fifo } from "./utils";
 
 export default class StorageCapsule {
-  config: IConfig
+  config: IConfig;
   storage: IStorage;
   storageChannel: string;
 
@@ -25,21 +25,14 @@ export default class StorageCapsule {
 
   fetch(): Array<any> {
     const all = this.all().filter(excludeSpecificTasks);
-    const tasks = groupBy(all, 'priority');
-    return Object
-      .keys(tasks)
+    const tasks = groupBy(all, "priority");
+    return Object.keys(tasks)
       .map(key => parseInt(key))
       .sort((a, b) => b - a)
-      .reduce((result, key) => {
-        if (this.config.get('principle') === 'lifo') {
-          return result.concat(tasks[key].sort(lifo));
-        } else {
-          return result.concat(tasks[key].sort(fifo));
-        }
-      }, []);
+      .reduce(this.reduceTasks(tasks), []);
   }
 
-  save(task: ITask): string|boolean {
+  save(task: ITask): string | boolean {
     try {
       // get all tasks current channel's
       const tasks: ITask[] = this.storage.get(this.storageChannel);
@@ -47,7 +40,11 @@ export default class StorageCapsule {
       // check channel limit.
       // if limit is exceeded, does not insert new task
       if (this.isExceeded()) {
-        console.warn(`Task limit exceeded: The '${this.storageChannel}' channel limit is ${this.config.get('limit')}`);
+        console.warn(
+          `Task limit exceeded: The '${
+            this.storageChannel
+          }' channel limit is ${this.config.get("limit")}`
+        );
         return false;
       }
 
@@ -62,12 +59,12 @@ export default class StorageCapsule {
       this.storage.set(this.storageChannel, JSON.stringify(tasks));
 
       return task._id;
-    } catch(e) {
+    } catch (e) {
       return false;
     }
   }
 
-  update(id: string, update: {[property: string]: any}): boolean {
+  update(id: string, update: { [property: string]: any }): boolean {
     try {
       const data: any[] = this.all();
       const index: number = data.findIndex(t => t._id == id);
@@ -81,7 +78,7 @@ export default class StorageCapsule {
       this.storage.set(this.storageChannel, JSON.stringify(data));
 
       return true;
-    } catch(e) {
+    } catch (e) {
       return false;
     }
   }
@@ -95,9 +92,12 @@ export default class StorageCapsule {
 
       delete data[index];
 
-      this.storage.set(this.storageChannel, JSON.stringify(data.filter(d => d)));
+      this.storage.set(
+        this.storageChannel,
+        JSON.stringify(data.filter(d => d))
+      );
       return true;
-    } catch(e) {
+    } catch (e) {
       return false;
     }
   }
@@ -116,10 +116,22 @@ export default class StorageCapsule {
     return task;
   }
 
+  reduceTasks(tasks: ITask[]) {
+    const reduceFunc = (result: ITask[], key: any) => {
+      if (this.config.get("principle") === "lifo") {
+        return result.concat(tasks[key].sort(lifo));
+      } else {
+        return result.concat(tasks[key].sort(fifo));
+      }
+    };
+
+    return reduceFunc.bind(this);
+  }
+
   isExceeded(): boolean {
-    const limit: number = this.config.get('limit');
+    const limit: number = this.config.get("limit");
     const tasks: ITask[] = this.all().filter(excludeSpecificTasks);
-    return ! (limit === -1 || limit > tasks.length);
+    return !(limit === -1 || limit > tasks.length);
   }
 
   clear(channel: string): void {

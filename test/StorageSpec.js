@@ -1,16 +1,18 @@
 import StorageCapsule from "../lib/storage-capsule";
 import LocalStorage from "../lib/storage/localstorage";
 import Config from "../lib/config";
+import Queue from "../lib/queue";
 
 describe('Storage capsule class tests', () => {
 
   const config = new Config;
   const lStorage = new LocalStorage(config);
-  let storage, exmpTask;
+  let storage, exmpTask, defaultTimeout;
 
   beforeEach(() => {
     exmpTask = {tag: 'test', handler: 'SendEmail', priority: 1, args: 'jobs args 2'};
     storage = new StorageCapsule(config, lStorage);
+    defaultTimeout = 1000;
     lStorage.clear('test-1');
     lStorage.clear('test-2');
   });
@@ -117,6 +119,35 @@ describe('Storage capsule class tests', () => {
     const newTask4 = Object.assign({}, exmpTask, {locked: false});
     storage.save(newTask4);
     expect(storage.fetch().length).toEqual(5);
+  });
+
+  it('should be sort tasks by fifo/lifo, -> fetch()', () => {
+    storage.channel('test-1');
+
+    let flag = false;
+    runs(() => {
+      setTimeout(() => {
+        const newTask1 = Object.assign({}, exmpTask, {tag: 'test-1'});
+        storage.save(newTask1);
+      }, (defaultTimeout + 100));
+
+      setTimeout(() => {
+        const newTask2 = Object.assign({}, exmpTask, {tag: 'test-2'});
+        storage.save(newTask2);
+        flag = true;
+      }, (defaultTimeout + 200));
+    });
+
+    waitsFor(() => {
+      return flag;
+    }, "", (defaultTimeout + 300));
+
+    runs(() => {
+      config.set('principle', Queue.FIFO);
+      expect(storage.fetch()[0].tag).toEqual('test-1');
+      config.set('principle', Queue.LIFO);
+      expect(storage.fetch()[0].tag).toEqual('test-2');
+    });
   });
 
   it('should be get all tasks, -> all()', () => {

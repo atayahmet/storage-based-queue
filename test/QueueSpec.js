@@ -12,8 +12,8 @@ describe('Queue class tests', () => {
     ]);
 
     defaultTimeout = 1000;
-    queue = new Queue(config);
     config = new Config;
+    queue = new Queue(config);
     storage = new LocalStorage(config);
   });
 
@@ -235,5 +235,16 @@ describe('Queue class tests', () => {
     const channelA = queue.create('channel-a');
     channelA.add({tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'any parameters'});
     expect(localStorage['browser_queue_channel-a']).toBeDefined();
+  });
+
+  it('should be set principle of config', () => {
+    queue.setPrinciple(Queue.FIFO);
+    expect(config.get('principle')).toEqual(Queue.FIFO);
+
+    // queue.setPrinciple(Queue.LIFO);
+    // console.log('config', config);
+
+    // console.log('aa', config.get('principle'));
+    // expect(config.get('principle')).toEqual(Queue.LIFO);
   });
 });

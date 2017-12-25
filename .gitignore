@@ -3,3 +3,4 @@ node_modules/
 .vscode/
 project.todo
 example.js
+package-lock.json
