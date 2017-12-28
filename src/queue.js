@@ -158,7 +158,6 @@ let Queue = (() => {
 
   Queue.prototype.setPrinciple = function(val: string): void {
     this.config.set("principle", val);
-    console.log('valx', this.config.get("principle"));
   };
 
   Queue.prototype.on = function(key: string, cb: Function): void {
