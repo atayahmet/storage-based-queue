@@ -18,7 +18,7 @@ gulp.task("es6", function() {
   }
 
   browserify({
-    entries: ["./dev/index.js"],
+    entries: ["./src/index.js"],
     debug: true
   })
     .transform(babelify, { presets: ["es2015", "stage-0"] })
@@ -50,7 +50,7 @@ gulp.task("stripTypes", function() {
 
   for (file of files) {
     execSync(
-      "./node_modules/.bin/babel  --plugins transform-flow-strip-types dev/" +
+      "./node_modules/.bin/babel  --plugins transform-flow-strip-types src/" +
         file +
         " > lib/" +
         file,
@@ -59,7 +59,7 @@ gulp.task("stripTypes", function() {
   }
 });
 gulp.task("watch", function() {
-  gulp.watch("dev/**/*.js", ["es6", "stripTypes"]);
+  gulp.watch("src/**/*.js", ["es6", "stripTypes"]);
 });
 
 gulp.task("default", ["es6", "watch"]);

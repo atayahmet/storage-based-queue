@@ -13,7 +13,7 @@ describe('Queue class tests', () => {
 
     defaultTimeout = 1000;
     config = new Config;
-    queue = new Queue(config);
+    queue = new Queue;
     storage = new LocalStorage(config);
   });
 
@@ -241,10 +241,7 @@ describe('Queue class tests', () => {
     queue.setPrinciple(Queue.FIFO);
     expect(config.get('principle')).toEqual(Queue.FIFO);
 
-    // queue.setPrinciple(Queue.LIFO);
-    // console.log('config', config);
-
-    // console.log('aa', config.get('principle'));
-    // expect(config.get('principle')).toEqual(Queue.LIFO);
+    queue.setPrinciple(Queue.LIFO);
+    expect(queue.config.get('principle')).toEqual(Queue.LIFO);
   });
 });
