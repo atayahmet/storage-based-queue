@@ -6,13 +6,13 @@ module.exports = function(karma) {
     frameworks: [ 'jasmine', 'browserify' ],
 
     files: [
-      'test/**/*Spec.js'
+      'test/**/*Spec.js',
     ],
 
-    reporters: [ 'spec', 'dots' ],
+    reporters: [ 'spec', 'dots', 'coverage' ],
 
     preprocessors: {
-      'test/**/*Spec.js': [ 'browserify' ]
+      'test/**/*Spec.js': [ 'browserify' ],
     },
 
     browsers: [ 'ChromeHeadless'],
@@ -34,6 +34,14 @@ module.exports = function(karma) {
           }
         ],
         'brfs'
+      ]
+    },
+    coverageReporter: {
+      dir: 'coverage',
+      reporters: [
+          { type: 'clover' },
+          { type: 'html', subdir: 'html' },
+          { type: 'json' }
       ]
     }
   });
