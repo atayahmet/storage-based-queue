@@ -64,7 +64,11 @@ describe("Event manager tests", function() {
     expect(event.store.retry.test.toString()).toContain('defaultCallback');
     expect(event.store['*'].test.toString()).toContain('defaultCallback');
     expect(event.store.wildcard['*'].toString()).toContain('defaultCallback');
-    expect(event.store.wildcard.error.toString()).toContain('defaultCallback')
+    expect(event.store.wildcard.error.toString()).toContain('defaultCallback');
+  });
+
+  it("should did throw error if not function, -> on()", function() {
+    expect(() => event.on('test:*', 'error')).toThrow();
   });
 
   it("should be add new event, -> add()", () => {
