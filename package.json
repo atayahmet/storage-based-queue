@@ -8,6 +8,7 @@
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
+    "babel-plugin-istanbul": "^4.1.5",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-es2015-parameters": "^6.24.1",
     "babel-plugin-transform-flow-strip-types": "^6.22.0",
@@ -21,6 +22,8 @@
     "browserify": "^14.5.0",
     "browserify-shim": "^3.8.14",
     "child_process": "^1.0.2",
+    "coveralls": "^3.0.0",
+    "cross-env": "^5.1.3",
     "flow-bin": "^0.56.0",
     "flow-remove-types": "^1.2.3",
     "growly": "^1.3.0",
@@ -54,9 +57,25 @@
     ]
   },
   "scripts": {
-    "test": "karma start --browsers ChromeHeadless",
+    "test": "cross-env NODE_ENV=test karma start --browsers ChromeHeadless",
     "test:watch": "karma start --no-single-run --auto-watch",
+    "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "flow": "flow"
+  },
+  "nyc": {
+    "exclude": [
+      "**/test/**/*",
+      "src/**/*",
+      "coverage/**/*",
+      "dist/**/*",
+      "flow-typed/**/*",
+      "interfaces/**/*",
+      "karma.conf.js",
+      "gulpfile.js",
+      "example.js"
+    ],
+    "sourceMap": true,
+    "checkCoverage": true
   },
   "keywords": [
     "queue",

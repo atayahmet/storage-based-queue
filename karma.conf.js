@@ -3,9 +3,10 @@
 module.exports = function(karma) {
   karma.set({
 
-    frameworks: [ 'jasmine', 'browserify' ],
+    frameworks: [ 'browserify', 'jasmine' ],
 
     files: [
+      'lib/**/*.js',
       'test/**/*Spec.js',
     ],
 
@@ -13,6 +14,7 @@ module.exports = function(karma) {
 
     preprocessors: {
       'test/**/*Spec.js': [ 'browserify' ],
+      'lib/**/*.js': [ 'browserify' ]
     },
 
     browsers: [ 'ChromeHeadless'],
@@ -30,18 +32,19 @@ module.exports = function(karma) {
           'babelify',
           {
             presets: ["es2015"],
-            plugins: ["transform-es2015-parameters", "transform-class-properties"]
+            plugins: ["transform-es2015-parameters", "transform-class-properties", "istanbul"]
           }
         ],
         'brfs'
       ]
     },
     coverageReporter: {
-      dir: 'coverage',
-      reporters: [
-          { type: 'clover' },
-          { type: 'html', subdir: 'html' },
-          { type: 'json' }
+      instrumenterOptions: {
+        istanbul: { noCompact: true }
+      },
+      reporters:[
+        {type: 'lcov', dir:'coverage/'},
+        {type: 'text-summary'}
       ]
     }
   });
