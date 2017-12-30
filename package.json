@@ -59,7 +59,7 @@
   "scripts": {
     "test": "karma start --browsers ChromeHeadless",
     "test:watch": "karma start --no-single-run --auto-watch",
-    "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
+    "coveralls": "cat ./coverage/html/headlesschrome/lcov.info | ./node_modules/.bin/coveralls",
     "flow": "flow"
   },
   "nyc": {

@@ -43,7 +43,14 @@ module.exports = function(karma) {
         istanbul: { noCompact: true }
       },
       reporters:[
-        {type: 'lcov', dir:'coverage/'},
+        {
+          type: 'lcov',
+          dir:'coverage/html/',
+          subdir: function(browser, platform) {
+            // normalization process to keep a consistent browser name
+            return browser.toLowerCase().split(' ')[0];
+          }
+        },
         {type: 'text-summary'}
       ]
     }
