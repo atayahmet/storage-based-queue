@@ -49,7 +49,9 @@ let Queue = (() => {
     this.timeout = this.config.get("timeout");
   }
 
-  Queue.prototype.add = function(task) {
+  Queue.prototype.add = function(task): string | boolean {
+    if (!canMultiple.call(this, task)) return false;
+
     const id = saveTask.call(this, task);
 
     if (id && this.stopped && this.running === true) {
@@ -335,6 +337,12 @@ let Queue = (() => {
     updateTask.locked = false;
 
     return db.call(this).update(task._id, updateTask);
+  }
+
+  function canMultiple(task: ITask): boolean {
+    if (typeof task !== "object" || task.unique !== true) return true;
+
+    return this.hasByTag(task.tag) < 1;
   }
 
   function updateRetry(task: ITask, job: IJobInstance): ITask {

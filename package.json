@@ -1,6 +1,6 @@
 {
   "name": "storage-based-queue",
-  "version": "0.0.5-beta7",
+  "version": "0.0.5-alpha1",
   "description": "Simply queue manager",
   "main": "lib/queue.js",
   "dependencies": {
@@ -22,6 +22,7 @@
     "browserify-shim": "^3.8.14",
     "child_process": "^1.0.2",
     "flow-bin": "^0.56.0",
+    "flow-remove-types": "^1.2.3",
     "growly": "^1.3.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^7.0.0",
@@ -37,6 +38,7 @@
     "karma-coverage": "^1.1.1",
     "karma-jasmine": "^0.1.5",
     "karma-spec-reporter": "0.0.31",
+    "vinyl-source-stream": "^2.0.0",
     "watchify": "^3.9.0"
   },
   "browserify": {

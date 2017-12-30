@@ -53,6 +53,19 @@ describe('Queue class tests', () => {
     });
   });
 
+  it('should be add single unique task, -> add()', () => {
+    const channelA = queue.create('channel-a');
+    expect(channelA.count()).toEqual(0);
+    channelA.add({unique: true, tag: 'unique-channel', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
+    channelA.add({unique: true, tag: 'unique-channel', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
+    channelA.add({unique: true, tag: 'unique-channel', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
+    channelA.add({unique: true, tag: 'unique-channel', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
+    channelA.add({unique: true, tag: 'unique-channel', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
+    expect(channelA.count()).toEqual(1);
+    channelA.add({unique: true, tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
+    expect(channelA.count()).toEqual(2);
+  });
+
   it('should be run next task, -> next()', () => {
     const channelA = queue.create('channel-a');
     channelA.start();
