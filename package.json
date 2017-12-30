@@ -1,6 +1,6 @@
 {
   "name": "storage-based-queue",
-  "version": "0.0.5-alpha2",
+  "version": "0.0.5-alpha2.1",
   "description": "Simply queue manager",
   "main": "lib/queue.js",
   "dependencies": {
@@ -57,7 +57,7 @@
     ]
   },
   "scripts": {
-    "test": "cross-env NODE_ENV=test karma start --browsers ChromeHeadless",
+    "test": "./node_modules/.bin/cross-env NODE_ENV=test karma start --browsers ChromeHeadless",
     "test:watch": "karma start --no-single-run --auto-watch",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "flow": "flow"
