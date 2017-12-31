@@ -22,6 +22,17 @@ describe('Queue class tests', () => {
     queue.setLimit(-1);
   })
 
+  it('should be register queue worker', () => {
+    Queue.register([
+      { handler: SendEmail},
+      { handler: SendEmail}
+    ]);
+
+    expect(Queue.jobs.length).toBeGreaterThan(1);
+
+    expect(() => Queue.register('worker')).toThrow();
+  });
+
   it('should be add new task to queue, -> add()', () => {
     expect(queue.running).toBeFalsy();
 
@@ -207,6 +218,8 @@ describe('Queue class tests', () => {
     expect(channelA.count()).toEqual(1);
     channelA.clear();
     expect(channelA.count()).toEqual(0);
+    channelA.currentChannel = null;
+    channelA.clear();
   });
 
   it('should be clear all tasks by tag in current channel, -> clearByTag()', () => {

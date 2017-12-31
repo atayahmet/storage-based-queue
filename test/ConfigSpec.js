@@ -4,7 +4,7 @@ describe('Config class tests', () => {
   let config;
 
   beforeEach(() => {
-    config = new Config
+    config = new Config({})
     config.set('test', true);
   });
 

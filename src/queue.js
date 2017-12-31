@@ -123,10 +123,10 @@ let Queue = (() => {
     return getTasksWithoutFreezed.call(this).filter(t => t.tag === tag).length;
   };
 
-  Queue.prototype.clear = function(): void {
-    if (this.currentChannel) {
-      this.storage.clear(this.currentChannel);
-    }
+  Queue.prototype.clear = function(): boolean {
+    if (! this.currentChannel) return false;
+    this.storage.clear(this.currentChannel);
+    return true;
   };
 
   Queue.prototype.clearByTag = function(tag: string): void {
