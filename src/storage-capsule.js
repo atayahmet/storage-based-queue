@@ -33,73 +33,61 @@ export default class StorageCapsule {
   }
 
   save(task: ITask): string | boolean {
-    try {
-      // get all tasks current channel's
-      const tasks: ITask[] = this.storage.get(this.storageChannel);
+    // get all tasks current channel's
+    const tasks: ITask[] = this.storage.get(this.storageChannel);
 
-      // check channel limit.
-      // if limit is exceeded, does not insert new task
-      if (this.isExceeded()) {
-        console.warn(
-          `Task limit exceeded: The '${
-            this.storageChannel
-          }' channel limit is ${this.config.get("limit")}`
-        );
-        return false;
-      }
-
-      // prepare all properties before save
-      // example: createdAt etc.
-      task = this.prepareTask(task);
-
-      // add task to storage
-      tasks.push(task);
-
-      // save tasks
-      this.storage.set(this.storageChannel, JSON.stringify(tasks));
-
-      return task._id;
-    } catch (e) {
+    // check channel limit.
+    // if limit is exceeded, does not insert new task
+    if (this.isExceeded()) {
+      console.warn(
+        `Task limit exceeded: The '${
+          this.storageChannel
+        }' channel limit is ${this.config.get("limit")}`
+      );
       return false;
     }
+
+    // prepare all properties before save
+    // example: createdAt etc.
+    task = this.prepareTask(task);
+
+    // add task to storage
+    tasks.push(task);
+
+    // save tasks
+    this.storage.set(this.storageChannel, JSON.stringify(tasks));
+
+    return task._id;
   }
 
   update(id: string, update: { [property: string]: any }): boolean {
-    try {
-      const data: any[] = this.all();
-      const index: number = data.findIndex(t => t._id == id);
+    const data: any[] = this.all();
+    const index: number = data.findIndex(t => t._id == id);
 
-      if (index < 0) return false;
+    if (index < 0) return false;
 
-      // merge existing object with given update object
-      data[index] = Object.assign({}, data[index], update);
+    // merge existing object with given update object
+    data[index] = Object.assign({}, data[index], update);
 
-      // save to the storage as string
-      this.storage.set(this.storageChannel, JSON.stringify(data));
+    // save to the storage as string
+    this.storage.set(this.storageChannel, JSON.stringify(data));
 
-      return true;
-    } catch (e) {
-      return false;
-    }
+    return true;
   }
 
   delete(id: string): boolean {
-    try {
-      const data: any[] = this.all();
-      const index: number = data.findIndex(d => d._id === id);
+    const data: any[] = this.all();
+    const index: number = data.findIndex(d => d._id === id);
 
-      if (index < 0) return false;
+    if (index < 0) return false;
 
-      delete data[index];
+    delete data[index];
 
-      this.storage.set(
-        this.storageChannel,
-        JSON.stringify(data.filter(d => d))
-      );
-      return true;
-    } catch (e) {
-      return false;
-    }
+    this.storage.set(
+      this.storageChannel,
+      JSON.stringify(data.filter(d => d))
+    );
+    return true;
   }
 
   all(): Array<any> {

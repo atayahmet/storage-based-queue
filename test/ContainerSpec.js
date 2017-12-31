@@ -36,6 +36,8 @@ describe('Container class tests', () => {
     expect('item1' in container._container).toBeTruthy();
     container.remove('item1');
     expect('item1' in container._container).toBeFalsy();
+
+    expect(container.remove('item2')).toBeFalsy();
   });
 
   it('should be remove all items, -> removeAll()', () => {

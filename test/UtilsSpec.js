@@ -5,6 +5,7 @@ describe('Utils functions tests', () => {
   function exampleFunc() {
     this.test = 'Hello';
   }
+
   exampleFunc.prototype.run = function() {
     this.test2 = 'World';
   }
@@ -49,4 +50,15 @@ describe('Utils functions tests', () => {
     task.freezed = true;
     expect(utils.excludeSpecificTasks(task)).toBeFalsy();
   });
+
+  it('should be check specific tags in object, -> utilClearByTag()', () => {
+    const task = {tag: 'test', freezed: true, locked: true, worker: 'SendEmail' };
+
+    expect(utils.utilClearByTag(task)).toBeFalsy();
+
+    task.locked = false;
+    expect(utils.utilClearByTag.call('test', task)).toBeTruthy();
+    expect(utils.utilClearByTag.call('test2', task)).toBeFalsy();
+  });
+
 });

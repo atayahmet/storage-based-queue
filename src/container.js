@@ -23,10 +23,9 @@ export default class Container implements IContainer {
     this._container[id] = value;
   }
 
-  remove(id: string): void {
-    if (Object.prototype.hasOwnProperty.call(this._container, id)) {
-      delete this._container[id];
-    }
+  remove(id: string): boolean {
+    if (! Object.prototype.hasOwnProperty.call(this._container, id)) return false;
+    return delete this._container[id];
   }
 
   removeAll(): void {

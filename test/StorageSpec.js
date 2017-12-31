@@ -41,6 +41,8 @@ describe('Storage capsule class tests', () => {
 
     expect(task._id).toBeDefined();
     expect(task.createdAt).toBeDefined();
+
+    expect(() => storage.save(2)).toThrow();
   });
 
   it('should be not insert new task, if task limit exceeded, -> save()', () => {
@@ -89,6 +91,8 @@ describe('Storage capsule class tests', () => {
 
     const updatedTasks = lStorage.get('test-1');
     expect(updatedTasks.findIndex(t => t._id === id)).toBeLessThan(0);
+
+    expect(storage.delete(423423)).toBeFalsy();
   });
 
   it('should be fetch workable tasks, -> fetch()', () => {
