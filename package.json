@@ -1,6 +1,6 @@
 {
   "name": "storage-based-queue",
-  "version": "0.0.5-alpha2.5",
+  "version": "0.0.5-alpha2.6",
   "description": "Simply queue manager",
   "main": "lib/queue.js",
   "dependencies": {
