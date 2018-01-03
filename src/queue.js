@@ -346,9 +346,7 @@ let Queue = (() => {
   }
 
   function updateRetry(task: ITask, job: IJobInstance): ITask {
-    if (!("retry" in job)) {
-      job.retry = 1;
-    }
+    if (!("retry" in job)) job.retry = 1;
 
     if (!("tried" in task)) {
       task.tried = 0;
