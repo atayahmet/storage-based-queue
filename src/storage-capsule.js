@@ -36,8 +36,8 @@ export default class StorageCapsule {
     // get all tasks current channel's
     const tasks: ITask[] = this.storage.get(this.storageChannel);
 
-    // check channel limit.
-    // if limit is exceeded, does not insert new task
+    // Check the channel limit.
+    // If limit is exceeded, does not insert new task
     if (this.isExceeded()) {
       console.warn(
         `Task limit exceeded: The '${
@@ -60,6 +60,12 @@ export default class StorageCapsule {
     return task._id;
   }
 
+  /**
+   * Update channel store.
+   *
+   * @return {string}
+   *   The value. This annotation can be used for type hinting purposes.
+   */
   update(id: string, update: { [property: string]: any }): boolean {
     const data: any[] = this.all();
     const index: number = data.findIndex(t => t._id == id);

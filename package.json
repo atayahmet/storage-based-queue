@@ -4,6 +4,8 @@
   "description": "Simply queue manager",
   "main": "lib/queue.js",
   "dependencies": {
+    "debug": "^3.1.0",
+    "dot-prop": "^4.2.0",
     "group-by": "0.0.1"
   },
   "devDependencies": {

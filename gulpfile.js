@@ -28,16 +28,18 @@ gulp.task("es6", function() {
     .pipe(source("dist/queue.js"))
     .pipe(gulp.dest(""));
 
-  gulp
-    .src(["dist/queue.js"])
-    .pipe(streamify(uglify()))
-    .pipe(rename("queue.min.js"))
-    .pipe(gulp.dest("./dist"));
+  // gulp
+  //   .src(["dist/queue.js"])
+  //   .on('error', (e) => { console.log(e) })
+  //   .pipe(streamify(uglify()))
+  //   .pipe(rename("queue.min.js"))
+  //   .pipe(gulp.dest("./dist"));
 });
 
 gulp.task("stripTypes", function() {
   const files = [
     "storage/localstorage.js",
+    "enum/log.events.js",
     "config.data.js",
     "config.js",
     "container.js",
@@ -62,4 +64,4 @@ gulp.task("watch", function() {
   gulp.watch("src/**/*.js", ["es6", "stripTypes"]);
 });
 
-gulp.task("default", ["es6", "watch"]);
+gulp.task("default", ["watch"]);

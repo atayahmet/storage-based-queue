@@ -1,5 +1,8 @@
 /* @flow */
+import obj from 'dot-prop';
+import debug from 'debug';
 import type ITask from '../interfaces/task';
+import logEvents from './enum/log.events';
 
 export function clone(obj: Object) {
   var newClass = Object.create(
@@ -59,4 +62,10 @@ export function fifo(a: ITask, b: ITask) {
 
 export function lifo(a: ITask, b: ITask) {
   return b.createdAt - a.createdAt;
+}
+
+export function log(key: string, data: string = '', condition: boolean = true) {
+  if (this !== true) return;
+  const log = debug(`worker:${data} ->`);
+  log(obj.get(logEvents, key));
 }
