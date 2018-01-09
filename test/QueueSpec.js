@@ -33,6 +33,16 @@ describe('Queue class tests', () => {
     expect(() => Queue.register('worker')).toThrow();
   });
 
+  it('should did force the queue including the current task, ->forceStop()', () => {
+    const channelA = queue.create('channel-a');
+    channelA.start();
+    expect(channelA.countByTag('tag:channel-a')).toEqual(0)
+    channelA.add({tag: 'tag:channel-a', handler: 'SendEmail', priority: 1, args: 'jobs args 2'});
+    expect(channelA.countByTag('tag:channel-a')).toEqual(1);
+    channelA.forceStop();
+    expect(channelA.countByTag('tag:channel-a')).toEqual(1);
+  });
+
   it('should be add new task to queue, -> add()', () => {
     expect(queue.running).toBeFalsy();
 
@@ -136,6 +146,7 @@ describe('Queue class tests', () => {
 
     expect(channelA.channels['channel-a'] instanceof Queue).toBeTruthy();
     expect(channelA.currentChannel).toEqual('channel-a');
+    expect(queue.create('channel-a')).toEqual(channelA);
   });
 
   it('should be select a channel and return instance, -> channel()', () => {
@@ -269,5 +280,15 @@ describe('Queue class tests', () => {
 
     queue.setPrinciple(Queue.LIFO);
     expect(queue.config.get('principle')).toEqual(Queue.LIFO);
+  });
+
+  it('should create an event, -> on()', () => {
+    queue.on('test:before', () => {});
+    expect('test' in queue.event.store.before).toBeTruthy();
+  });
+
+  it('should create an error event, -> error()', () => {
+    queue.error(() => 'test');
+    expect(queue.event.store.wildcard.error()).toEqual('test');
   });
 });
