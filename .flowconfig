@@ -2,7 +2,7 @@
 .*/node_modules/.*
 [include]
 [libs]
-./flow-typed/dot-prop
+./flow-typed/object-path
 ./flow-typed/debug
 ./flow-typed/lodash.groupby
 

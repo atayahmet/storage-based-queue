@@ -1,3 +1,3 @@
-declare module 'dot-prop' {
+declare module 'object-path' {
   declare module.exports: any;
 }

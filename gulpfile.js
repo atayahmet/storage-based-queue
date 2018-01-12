@@ -28,12 +28,12 @@ gulp.task("es6", function() {
     .pipe(source("dist/queue.js"))
     .pipe(gulp.dest(""));
 
-  // gulp
-  //   .src(["dist/queue.js"])
-  //   .on('error', (e) => { console.log(e) })
-  //   .pipe(streamify(uglify()))
-  //   .pipe(rename("queue.min.js"))
-  //   .pipe(gulp.dest("./dist"));
+  gulp
+    .src(["dist/queue.js"])
+    .on('error', (e) => { console.log(e) })
+    .pipe(streamify(uglify()))
+    .pipe(rename("queue.min.js"))
+    .pipe(gulp.dest("./dist"));
 });
 
 gulp.task("stripTypes", function() {

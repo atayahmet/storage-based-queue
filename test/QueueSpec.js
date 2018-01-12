@@ -274,6 +274,14 @@ describe('Queue class tests', () => {
     expect(localStorage['browser_queue_channel-a']).toBeDefined();
   });
 
+  it('should be set debug value of config, ->setDebug()', () => {
+    config.set('debug', false)
+    queue.setDebug(true);
+    expect(queue.config.get('debug')).toBeTruthy();
+    queue.setDebug(false);
+    expect(queue.config.get('debug')).toBeFalsy();
+  });
+
   it('should be set principle of config', () => {
     queue.setPrinciple(Queue.FIFO);
     expect(config.get('principle')).toEqual(Queue.FIFO);
@@ -288,7 +296,7 @@ describe('Queue class tests', () => {
   });
 
   it('should create an error event, -> error()', () => {
-    queue.error(() => 'test');
+    queue.on('error', () => 'test');
     expect(queue.event.store.wildcard.error()).toEqual('test');
   });
 });

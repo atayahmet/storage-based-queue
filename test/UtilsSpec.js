@@ -61,4 +61,11 @@ describe('Utils functions tests', () => {
     expect(utils.utilClearByTag.call('test2', task)).toBeFalsy();
   });
 
+  it('should be manage log input/output, -> log()', () => {
+    delete localStorage.debug;
+    utils.log.call(true, 'queue.starting');
+    expect(localStorage['debug']).toBeDefined();
+    utils.log.call(false, 'queue.starting');
+    expect(localStorage['debug']).not.toBeDefined();
+  });
 });

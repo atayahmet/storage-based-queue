@@ -1,5 +1,5 @@
 /* @flow */
-import obj from 'dot-prop';
+import obj from 'object-path';
 import debug from 'debug';
 import type ITask from '../interfaces/task';
 import logEvents from './enum/log.events';
@@ -65,7 +65,17 @@ export function lifo(a: ITask, b: ITask) {
 }
 
 export function log(key: string, data: string = '', condition: boolean = true) {
-  if (this !== true) return;
+  if (this !== true) {
+    localStorage.removeItem('debug');
+    return;
+  }
+
+  // debug mode on always
+  localStorage.setItem('debug', 'worker:*');
+
+  // get new debug function instance
   const log = debug(`worker:${data} ->`);
+
+  // the output push to console
   log(obj.get(logEvents, key));
 }
