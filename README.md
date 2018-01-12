@@ -48,5 +48,11 @@ import Queue from 'storage-based-queue';
 
 [Click for detailed documentation](https://github.com/atayahmet/storage-based-queue/wiki/Quick-Start)
 
+## Tests
+
+```ssh
+$ npm test
+```
+
 ## License
 MIT license
