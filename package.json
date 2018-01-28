@@ -81,8 +81,13 @@
   },
   "keywords": [
     "queue",
+    "browser",
+    "client",
+    "priority",
     "worker",
-    "jobs"
+    "jobs",
+    "offline",
+    "storage"
   ],
   "author": "Ahmet ATAY",
   "license": "ISC"

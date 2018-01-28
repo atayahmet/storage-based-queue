@@ -47,7 +47,8 @@ gulp.task("stripTypes", function() {
     "index.js",
     "queue.js",
     "storage-capsule.js",
-    "utils.js"
+    "utils.js",
+    "helpers.js"
   ];
 
   for (file of files) {

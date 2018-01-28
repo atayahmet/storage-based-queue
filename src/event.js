@@ -1,8 +1,8 @@
 export default class Event {
-  store = {};
-  verifierPattern = /^[a-z0-9\-\_]+\:before$|after$|retry$|\*$/;
-  wildcards = ['*', 'error'];
-  emptyFunc = () => {};
+  store: {[prop: string]: any} = {};
+  verifierPattern: string = /^[a-z0-9\-\_]+\:before$|after$|retry$|\*$/;
+  wildcards: string[] = ['*', 'error'];
+  emptyFunc: Function = () => {};
 
   constructor() {
     this.store.before = {};
@@ -13,20 +13,38 @@ export default class Event {
     this.store['*'] = this.emptyFunc;
   }
 
+  /**
+   * Create event
+   *
+   * @param  {String} key
+   * @param  {Function} cb
+   * @return {void}
+   *
+   * @api public
+   */
   on(key: string, cb: Function): void {
     if (typeof(cb) !== 'function') throw new Error('Event should be an function');
     if (this.isValid(key)) this.add(key, cb);
   }
 
-  emit(key: string, args: any) {
+  /**
+   * Run event via it's key
+   *
+   * @param  {String} key
+   * @param  {Any} args
+   * @return {void}
+   *
+   * @api public
+   */
+  emit(key: string, args: any): void {
     if (this.wildcards.indexOf(key) > -1) {
       this.wildcard(key, ...arguments);
     } else {
-      const type = this.getType(key);
-      const name = this.getName(key);
+      const type: string = this.getType(key);
+      const name: string = this.getName(key);
 
       if (this.store[type]) {
-        const cb = this.store[type][name] || this.emptyFunc;
+        const cb: Function = this.store[type][name] || this.emptyFunc;
         cb.call(null, args);
       }
     }
@@ -34,40 +52,91 @@ export default class Event {
     this.wildcard('*', key, args);
   }
 
-  wildcard(key: string, actionKey: string, args: any) {
+  /**
+   * Run wildcard events
+   *
+   * @param  {String} key
+   * @param  {String} actionKey
+   * @param  {Any} args
+   * @return {void}
+   *
+   * @api public
+   */
+  wildcard(key: string, actionKey: string, args: any): void {
     if (this.store.wildcard[key]) {
       this.store.wildcard[key].call(null, actionKey, args);
     }
   }
 
+  /**
+   * Add event to store
+   *
+   * @param  {String} key
+   * @param  {Function} cb
+   * @return {void}
+   *
+   * @api public
+   */
   add(key: string, cb: Function): void {
     if (this.wildcards.indexOf(key) >-1) {
       this.store.wildcard[key] = cb;
     } else {
-      const type = this.getType(key);
-      const name = this.getName(key);
+      const type: string = this.getType(key);
+      const name: string = this.getName(key);
       this.store[type][name] = cb;
     }
   }
 
-  has(key: string) {
+  /**
+   * Check event in store
+   *
+   * @param  {String} key
+   * @return {Boolean}
+   *
+   * @api public
+   */
+  has(key: string): boolean {
     try {
-      const keys = key.split(':');
+      const keys: string[] = key.split(':');
       return keys.length > 1 ? !! this.store[keys[1]][keys[0]] : !! this.store.wildcard[keys[0]];
     } catch(e) {
       return false;
     }
   }
 
+  /**
+   * Get event name by parse key
+   *
+   * @param  {String} key
+   * @return {String}
+   *
+   * @api public
+   */
   getName(key: string): string {
     return key.match(/(.*)\:.*/)[1];
   }
 
+  /**
+   * Get event type by parse key
+   *
+   * @param  {String} key
+   * @return {String}
+   *
+   * @api public
+   */
   getType(key: string): string {
     return key.match(/^[a-z0-9\-\_]+\:(.*)/)[1];
   }
 
-  isValid(key: string) {
+  /**
+   * Checker of event keys
+   *
+   * @param  {String} key
+   * @return {Boolean}
+   *
+   * @api public
+   */
+  isValid(key: string): boolean {
     return this.verifierPattern.test(key) || this.wildcards.indexOf(key) >-1;
   }
 }

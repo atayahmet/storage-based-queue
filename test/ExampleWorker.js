@@ -1,7 +1,7 @@
 export default class SendEmail {
   retry = 4;
 
-  handle(args, product, category) {
+  handle(args) {
     try {
       return new Promise((resolve, reject) => {
         resolve(true);

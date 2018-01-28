@@ -117,9 +117,9 @@ describe('Queue class tests', () => {
     const channelA = queue.create('channel-a');
     channelA.start();
 
-    spyOn(channelA, 'start');
 
     channelA.add({tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
+    spyOn(channelA, 'start');
     channelA.stop();
 
     let flag = false;
