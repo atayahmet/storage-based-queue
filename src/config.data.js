@@ -4,5 +4,6 @@ export default {
   timeout: 1000,
   limit: -1,
   principle: 'fifo',
+  network: false,
   debug: true
 };

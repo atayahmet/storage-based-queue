@@ -80,6 +80,7 @@
     "checkCoverage": true
   },
   "keywords": [
+    "async",
     "queue",
     "browser",
     "client",
@@ -87,7 +88,8 @@
     "worker",
     "jobs",
     "offline",
-    "storage"
+    "storage",
+    "channel"
   ],
   "author": "Ahmet ATAY",
   "license": "ISC"
