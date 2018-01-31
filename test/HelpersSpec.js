@@ -11,7 +11,9 @@ import {
   successJobHandler,
   failedJobHandler,
   updateRetry,
-  dispatchProcess
+  dispatchProcess,
+  checkNetwork,
+  queueCtrl
 } from '../lib/helpers';
 
 describe('Helper functions tests', () => {
@@ -141,5 +143,35 @@ describe('Helper functions tests', () => {
     expect(updatedTask.retry).toEqual(1);
     expect(updatedTask.tried).toEqual(1);
     expect(updatedTask.freezed).toBeTruthy();
+  });
+
+  it('should be check network status via network config, -> checkNetwork()', () => {
+    queue.config.set('network', false);
+    expect(checkNetwork.call(queue)).toBeTruthy();
+
+    queue.config.set('network', true);
+    expect(checkNetwork.call(queue, false)).toBeFalsy();
+  });
+
+  it('should be control the queue workableness, -> queueCtrl()', () => {
+    spyOn(channelA, 'forceStop');
+    queueCtrl.call(queue, true);
+    expect(channelA.forceStop).toHaveBeenCalled();
+
+    spyOn(channelA, 'start');
+    queueCtrl.call(queue, false);
+    let flag = false;
+    runs(() => {
+      setTimeout(() => { flag = true; }, 2001);
+    });
+
+    waitsFor(() => {
+      return flag;
+    }, "The Value should be true", 2002);
+
+    runs(() => {
+      expect(channelA.start).toHaveBeenCalled();
+    });
+
   });
 });

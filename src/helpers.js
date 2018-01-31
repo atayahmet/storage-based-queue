@@ -1,4 +1,5 @@
 /* @flow */
+import { watch } from 'is-offline';
 import Queue from './queue';
 import { excludeSpecificTasks, log, hasMethod, isFunction } from './utils';
 import StorageCapsule from './storage-capsule';
@@ -428,4 +429,64 @@ export function registerJobs(): void {
   }
 
   Queue.isRegistered = true;
+}
+
+/**
+ * Check network and return queue avaibility status
+ * Context: Queue
+ *
+ * @param {Boolean} status
+ * @return {Boolean}
+ *
+ * @api private
+ */
+export function checkNetwork(status: boolean = navigator.onLine): boolean {
+  const network = this.config.get('network');
+  return ! status && network ? false : true;
+}
+
+/**
+ * Remove network observer event
+ * Context: Queue
+ *
+ * @param {Boolean} status
+ * @return {void}
+ *
+ * @api private
+ */
+export function removeNetworkEvent(): void {
+  if (typeof(this.networkObserver) === 'function') this.networkObserver();
+}
+
+/**
+ * if network status true, create new network event
+ * Context: Queue
+ *
+ * @param {Boolean} network
+ * @return {void}
+ *
+ * @api private
+ */
+export function createNetworkEvent(network: boolean): void {
+  if (network) this.networkObserver = watch(queueCtrl.bind(this));
+}
+
+/**
+ * Queue controller via boolean value
+ * Context: Queue
+ *
+ * @param {Boolean} status
+ * @return {void}
+ *
+ * @api private
+ */
+export function queueCtrl(status: boolean): void {
+  const channel = this.channels[this.currentChannel];
+  if (status) {
+    channel.forceStop();
+    logProxy.call(this, 'queue.offline', 'offline');
+  } else {
+    setTimeout(channel.start.bind(this), 2000);
+    logProxy.call(this, 'queue.online', 'online');
+  }
 }

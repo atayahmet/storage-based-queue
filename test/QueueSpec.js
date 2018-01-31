@@ -290,6 +290,14 @@ describe('Queue class tests', () => {
     expect(queue.config.get('principle')).toEqual(Queue.LIFO);
   });
 
+  it('should be set network value of config, ->setNetwork()', () => {
+    config.set('network', false)
+    queue.setNetwork(true);
+    expect(queue.config.get('network')).toBeTruthy();
+    queue.setNetwork(false);
+    expect(queue.config.get('network')).toBeFalsy();
+  });
+
   it('should create an event, -> on()', () => {
     queue.on('test:before', () => {});
     expect('test' in queue.event.store.before).toBeTruthy();

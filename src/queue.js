@@ -30,6 +30,9 @@ import {
   statusOff,
   logProxy,
   saveTask,
+  checkNetwork,
+  createNetworkEvent,
+  removeNetworkEvent,
   db
 } from './helpers';
 
@@ -45,16 +48,22 @@ let Queue = (() => {
   }
 
   function _constructor(config) {
-    this.channels = {}
+    this.channels = {};
     this.config = new Config(config);
     this.storage = new StorageCapsule(
       this.config,
       new LocalStorage(this.config)
     );
+
+    // Default job timeout
     this.timeout = this.config.get("timeout");
+
+    const network = this.config.get('network');
+
+    // network observer
+    createNetworkEvent.call(this, network);
   }
 
-  Queue.prototype.currentChannel;
   Queue.prototype.currentChannel;
   Queue.prototype.stopped = true;
   Queue.prototype.running = false;
@@ -75,7 +84,6 @@ let Queue = (() => {
     const id = saveTask.call(this, task);
 
     if (id && this.stopped && this.running === true) {
-      console.log('WWEEE',id, this.stopped, this.running);
       this.start();
     }
 
@@ -111,6 +119,8 @@ let Queue = (() => {
    * @api public
    */
   Queue.prototype.start = function(): boolean {
+    if (! checkNetwork.call(this)) return false;
+
     // Stop the queue for restart
     this.stopped = false;
 
@@ -327,6 +337,24 @@ let Queue = (() => {
    */
   Queue.prototype.setDebug = function(val: boolean): void {
     this.config.set("debug", val);
+  };
+
+  /**
+   * Set config network value
+   *
+   * @param  {Boolean} val
+   * @return {Void}
+   *
+   * @api public
+   */
+  Queue.prototype.setNetwork = function(val: boolean): void {
+    this.config.set("network", val);
+
+    // clear network event if it exists
+    removeNetworkEvent.call(this);
+
+    // if value true, create new network event
+    createNetworkEvent.call(this, val);
   };
 
   /**
