@@ -52,7 +52,7 @@ let Queue = (() => {
     this.config = new Config(config);
     this.storage = new StorageCapsule(
       this.config,
-      new LocalStorage(this.config)
+      Queue.storageDriver
     );
 
     // Default job timeout
@@ -78,13 +78,13 @@ let Queue = (() => {
    *
    * @api public
    */
-  Queue.prototype.add = function(task): string | boolean {
-    if (!canMultiple.call(this, task)) return false;
+  Queue.prototype.add = async function(task): Promise<string | boolean> {
+    if (! canMultiple.call(this, task)) return false;
 
-    const id = saveTask.call(this, task);
+    const id = await saveTask.call(this, task);
 
     if (id && this.stopped && this.running === true) {
-      this.start();
+      await this.start();
     }
 
     // pass activity to the log service.
@@ -100,7 +100,7 @@ let Queue = (() => {
    *
    * @api public
    */
-  Queue.prototype.next = function() {
+  Queue.prototype.next = async function() {
     if (this.stopped) {
       statusOff.call(this);
       return stopQueue.call(this);
@@ -108,7 +108,7 @@ let Queue = (() => {
 
     logProxy.call(this, 'queue.next', 'next');
 
-    this.start();
+    await this.start();
   };
 
   /**
@@ -118,7 +118,7 @@ let Queue = (() => {
    *
    * @api public
    */
-  Queue.prototype.start = function(): boolean {
+  Queue.prototype.start = async function(): Promise<boolean> {
     if (! checkNetwork.call(this)) return false;
 
     // Stop the queue for restart
@@ -130,7 +130,7 @@ let Queue = (() => {
     logProxy.call(this, 'queue.starting', 'start');
 
     // Create a timeout for start queue
-    this.running = createTimeout.call(this) > 0;
+    this.running = await createTimeout.call(this) > 0;
 
     return this.running;
   };
@@ -198,8 +198,8 @@ let Queue = (() => {
    *
    * @api public
    */
-  Queue.prototype.isEmpty = function(): boolean {
-    return this.count() < 1;
+  Queue.prototype.isEmpty = async function(): Promise<boolean> {
+    return await this.count() < 1;
   };
 
   /**
@@ -209,8 +209,8 @@ let Queue = (() => {
    *
    * @api public
    */
-  Queue.prototype.count = function(): Array<ITask> {
-    return getTasksWithoutFreezed.call(this).length;
+  Queue.prototype.count = async function(): Promise<number> {
+    return (await getTasksWithoutFreezed.call(this)).length;
   };
 
   /**
@@ -221,8 +221,8 @@ let Queue = (() => {
    *
    * @api public
    */
-  Queue.prototype.countByTag = function(tag: string): Array<ITask> {
-    return getTasksWithoutFreezed.call(this).filter(t => t.tag === tag).length;
+  Queue.prototype.countByTag = async function(tag: string): Promise<number> {
+    return (await getTasksWithoutFreezed.call(this)).filter(t => t.tag === tag).length;
   };
 
   /**
@@ -246,10 +246,10 @@ let Queue = (() => {
    *
    * @api public
    */
-  Queue.prototype.clearByTag = function(tag: string): void {
-    db
+  Queue.prototype.clearByTag = async function(tag: string): Promise<void> {
+    (await db
       .call(this)
-      .all()
+      .all())
       .filter(utilClearByTag.bind(tag))
       .forEach(t => db.call(this).delete(t._id));
   };
@@ -262,8 +262,8 @@ let Queue = (() => {
    *
    * @api public
    */
-  Queue.prototype.has = function(id: string): boolean {
-    return getTasksWithoutFreezed.call(this).findIndex(t => t._id === id) > -1;
+  Queue.prototype.has = async function(id: string): Promise<boolean> {
+    return (await getTasksWithoutFreezed.call(this)).findIndex(t => t._id === id) > -1;
   };
 
   /**
@@ -274,8 +274,8 @@ let Queue = (() => {
    *
    * @api public
    */
-  Queue.prototype.hasByTag = function(tag: string): boolean {
-    return getTasksWithoutFreezed.call(this).findIndex(t => t.tag === tag) > -1;
+  Queue.prototype.hasByTag = async function(tag: string): Promise<boolean> {
+    return (await getTasksWithoutFreezed.call(this)).findIndex(t => t.tag === tag) > -1;
   };
 
   /**
@@ -357,6 +357,10 @@ let Queue = (() => {
     createNetworkEvent.call(this, val);
   };
 
+  Queue.prototype.setStorage = function(val: string): void {
+    this.config.set("storage", val);
+  }
+
   /**
    * Set action events
    *
@@ -387,6 +391,11 @@ let Queue = (() => {
     Queue.isRegistered = false;
     Queue.jobs = jobs;
   };
+
+  Queue.storage = function(storage) {
+    console.log('driver->', storage);
+    Queue.storageDriver = storage
+  }
 
   return Queue;
 })();

@@ -15,10 +15,10 @@ import type IJobInstance from '../interfaces/job';
  *
  * @api private
  */
-export function getTasksWithoutFreezed(): ITask {
-  return db
+export async function getTasksWithoutFreezed(): Promise<ITask[]> {
+  return (await db
     .call(this)
-    .all()
+    .all())
     .filter(excludeSpecificTasks.bind(["freezed"]));
 }
 
@@ -64,8 +64,8 @@ export function logProxy(key: string, data: string, cond: boolean = true): void 
  *
  * @api private
  */
-export function saveTask(task: ITask): string | boolean {
-  return db.call(this).save(checkPriority(task));
+export async function saveTask(task: ITask): Promise<string | boolean> {
+  return await db.call(this).save(checkPriority(task));
 }
 
 /**
@@ -77,8 +77,8 @@ export function saveTask(task: ITask): string | boolean {
  *
  * @api private
  */
-export function removeTask(id: string): boolean {
-  return db.call(this).delete(id);
+export async function removeTask(id: string): Promise<boolean> {
+  return await db.call(this).delete(id);
 }
 
 /**
@@ -129,12 +129,12 @@ export function checkPriority(task: ITask): ITask {
  *
  * @api private
  */
-export function createTimeout(): number {
+export async function createTimeout(): Promise<number> {
   // if running any job, stop it
   // the purpose here is to prevent cocurrent operation in same channel
   clearTimeout(this.currentTimeout);
 
-  const task: ITask = db.call(this).fetch().shift();
+  const task: ITask = (await db.call(this).fetch()).shift();
 
   if (task === undefined) {
     logProxy.call(this, 'queue.empty', this.currentChannel);
@@ -144,7 +144,7 @@ export function createTimeout(): number {
 
   if (! this.container.has(task.handler)) {
     logProxy.call(this, 'queue.not-found', task.handler);
-    failedJobHandler.call(this, task).call();
+    await (await failedJobHandler.call(this, task)).call();
     return 1;
   }
 
@@ -154,7 +154,7 @@ export function createTimeout(): number {
   // get always last updated config value
   const timeout: number = jobInstance.timeout || this.config.get("timeout");
 
-  const handler: Function = loopHandler.call(this, task, job, jobInstance).bind(this);
+  const handler: Function = (await loopHandler.call(this, task, job, jobInstance)).bind(this);
 
   // create new timeout for process a job in queue
   // binding loopHandler function to setTimeout
@@ -174,11 +174,11 @@ export function createTimeout(): number {
  * @api private
  */
 export function loopHandler(task: ITask, job: IJob, jobInstance: IJobInstance): Function {
-  return (): void => {
+  return async function(): Promise<void> {
     const self: Queue = this;
 
     // lock the current task for prevent race condition
-    lockTask.call(self, task);
+    await lockTask.call(self, task);
 
     // fire job before event
     fireJobInlineEvent.call(this, "before", jobInstance, task.args);
@@ -192,9 +192,9 @@ export function loopHandler(task: ITask, job: IJob, jobInstance: IJobInstance): 
     // Task runner promise
     jobInstance.handle
       .call(jobInstance, task.args, ...dependencies)
-      .then(successJobHandler.call(self, task, jobInstance).bind(self))
-      .catch(failedJobHandler.call(self, task, jobInstance).bind(self));
-    };
+      .then((await successJobHandler.call(self, task, jobInstance)).bind(self))
+      .catch((await failedJobHandler.call(self, task, jobInstance)).bind(self));
+  };
 }
 
 /**
@@ -206,8 +206,8 @@ export function loopHandler(task: ITask, job: IJob, jobInstance: IJobInstance): 
  *
  * @api private
  */
-export function lockTask(task: ITask): boolean {
-  return db.call(this).update(task._id, { locked: true });
+export async function lockTask(task: ITask): Promise<boolean> {
+  return await db.call(this).update(task._id, { locked: true });
 }
 
 /**
@@ -238,7 +238,7 @@ export function stopQueue(): void {
  * @api private
  */
 export function fireJobInlineEvent(name: string, job: IJobInstance, args: any): boolean|void {
-  if (!hasMethod(job, name)) return false;
+  if (! hasMethod(job, name)) return false;
 
   if (name == "before" && isFunction(job.before)) {
     job.before.call(job, args);
@@ -257,9 +257,9 @@ export function fireJobInlineEvent(name: string, job: IJobInstance, args: any): 
  *
  * @api private
  */
-export function successJobHandler(task: ITask, job: IJobInstance): Function {
+export async function successJobHandler(task: ITask, job: IJobInstance): Promise<Function> {
   const self: Queue = this;
-  return function(result: boolean): void {
+  return async function(result: boolean): Promise<void> {
     // dispatch job process after runs a task but only non error jobs
     dispatchProcess.call(self, result, task, job);
 
@@ -270,7 +270,7 @@ export function successJobHandler(task: ITask, job: IJobInstance): Function {
     dispatchEvents.call(self, task, "after");
 
     // try next queue job
-    self.next();
+    await self.next();
   };
 }
 
@@ -284,13 +284,13 @@ export function successJobHandler(task: ITask, job: IJobInstance): Function {
  *
  * @api private
  */
-export function failedJobHandler(task: ITask, job?: IJobInstance): Function {
-  return (result: boolean): void => {
+export async function failedJobHandler(task: ITask, job?: IJobInstance): Promise<Function> {
+  return async function (result: boolean): Promise<void> {
     removeTask.call(this, task._id);
 
     this.event.emit("error", task);
 
-    this.next();
+    await this.next();
   };
 }
 
@@ -352,7 +352,7 @@ export function statusOff(): void {
  *
  * @api private
  */
-export function retryProcess(task: ITask, job: IJobInstance): boolean {
+export async function retryProcess(task: ITask, job: IJobInstance): Promise<boolean> {
   // dispacth custom retry event
   dispatchEvents.call(this, task, "retry");
 
@@ -362,7 +362,7 @@ export function retryProcess(task: ITask, job: IJobInstance): boolean {
   // delete lock property for next process
   updateTask.locked = false;
 
-  return db.call(this).update(task._id, updateTask);
+  return await db.call(this).update(task._id, updateTask);
 }
 
 /**
@@ -374,10 +374,10 @@ export function retryProcess(task: ITask, job: IJobInstance): boolean {
  *
  * @api private
  */
-export function canMultiple(task: ITask): boolean {
+export async function canMultiple(task: ITask): Promise<boolean> {
   if (typeof task !== "object" || task.unique !== true) return true;
 
-  return this.hasByTag(task.tag) < 1;
+  return await this.hasByTag(task.tag) < 1;
 }
 
 /**

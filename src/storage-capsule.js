@@ -1,5 +1,4 @@
 /* @flow */
-
 import groupBy from "group-by";
 import LocalStorage from "./storage/localstorage";
 import type IConfig from "../interfaces/config";
@@ -7,15 +6,27 @@ import type IStorage from "../interfaces/storage";
 import type ITask from "../interfaces/task";
 import Config from "./config";
 import { excludeSpecificTasks, lifo, fifo } from "./utils";
+import LocalForageAdapter from "./storage/localforage";
 
 export default class StorageCapsule {
   config: IConfig;
   storage: IStorage;
   storageChannel: string;
 
-  constructor(config: IConfig, storage: IStorage) {
-    this.storage = storage;
+  constructor(config: IConfig, storage: IStorage | null) {
     this.config = config;
+    this.storage = this.initStorage(storage);
+  }
+
+  initStorage(storage: any) {
+    if (typeof(storage) === 'object') {
+      return storage;
+    }
+    else if(typeof(storage) === 'function') {
+      return new storage(this.config);
+    }
+
+    return new LocalForageAdapter(this.config);
   }
 
   /**
@@ -38,8 +49,8 @@ export default class StorageCapsule {
    *
    * @api public
    */
-  fetch(): Array<any> {
-    const all = this.all().filter(excludeSpecificTasks);
+  async fetch(): Promise<any[]> {
+    const all = (await this.all()).filter(excludeSpecificTasks);
     const tasks = groupBy(all, "priority");
     return Object.keys(tasks)
       .map(key => parseInt(key))
@@ -55,13 +66,13 @@ export default class StorageCapsule {
    *
    * @api public
    */
-  save(task: ITask): string | boolean {
+  async save(task: ITask): Promise<string | boolean> {
     // get all tasks current channel's
-    const tasks: ITask[] = this.storage.get(this.storageChannel);
+    const tasks: ITask[] = await this.storage.get(this.storageChannel);
 
     // Check the channel limit.
     // If limit is exceeded, does not insert new task
-    if (this.isExceeded()) {
+    if (await this.isExceeded()) {
       console.warn(
         `Task limit exceeded: The '${
           this.storageChannel
@@ -78,7 +89,7 @@ export default class StorageCapsule {
     tasks.push(task);
 
     // save tasks
-    this.storage.set(this.storageChannel, JSON.stringify(tasks));
+    await this.storage.set(this.storageChannel, tasks);
 
     return task._id;
   }
@@ -89,8 +100,9 @@ export default class StorageCapsule {
    * @return {string}
    *   The value. This annotation can be used for type hinting purposes.
    */
-  update(id: string, update: { [property: string]: any }): boolean {
-    const data: any[] = this.all();
+  async update(id: string, update: { [property: string]: any }): Promise<boolean> {
+    const data: any[] = await this.all();
+    console.log('ddd->', data)
     const index: number = data.findIndex(t => t._id == id);
 
     if (index < 0) return false;
@@ -99,7 +111,7 @@ export default class StorageCapsule {
     data[index] = Object.assign({}, data[index], update);
 
     // save to the storage as string
-    this.storage.set(this.storageChannel, JSON.stringify(data));
+    await this.storage.set(this.storageChannel, data);
 
     return true;
   }
@@ -112,17 +124,17 @@ export default class StorageCapsule {
    *
    * @api public
    */
-  delete(id: string): boolean {
-    const data: any[] = this.all();
+  async delete(id: string): Promise<boolean> {
+    const data: any[] = await this.all();
     const index: number = data.findIndex(d => d._id === id);
 
     if (index < 0) return false;
 
     delete data[index];
 
-    this.storage.set(
+    await this.storage.set(
       this.storageChannel,
-      JSON.stringify(data.filter(d => d))
+      data.filter(d => d)
     );
     return true;
   }
@@ -134,7 +146,7 @@ export default class StorageCapsule {
    *
    * @api public
    */
-  all(): Array<any> {
+  all(): Promise<ITask[]> {
     return this.storage.get(this.storageChannel);
   }
 
@@ -190,9 +202,10 @@ export default class StorageCapsule {
    *
    * @api public
    */
-  isExceeded(): boolean {
+  async isExceeded(): Promise<boolean> {
     const limit: number = this.config.get("limit");
-    const tasks: ITask[] = this.all().filter(excludeSpecificTasks);
+    const tasks: ITask[] = (await this.all()).filter(excludeSpecificTasks);
+    console.log('fff->', limit, tasks, !(limit === -1 || limit > tasks.length));
     return !(limit === -1 || limit > tasks.length);
   }
 

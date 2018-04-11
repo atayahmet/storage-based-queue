@@ -7,7 +7,7 @@ SendEmail.prototype.retry = 2;
 SendEmail.prototype.handle = function(args) {
   try {
       return new Promise((resolve, reject) => {
-        // console.log('hellooo', args);
+        console.log('hellooo', args);
         resolve(true);
       });
     } catch(e) {
@@ -20,6 +20,7 @@ Queue.register([
 ]);
 
 const queue = new Queue({
+  storage: 'localstorage',
   prefix: 'sq_jobsx',
   timeout: 1000,
   limit: 1,
@@ -49,40 +50,68 @@ queue.on('*', function () {
 
 const channelA = queue.create('mailing');
 
-channelA.start();
-setTimeout(() => {
-channelA.add({
+setTimeout(async () => {
+await channelA.add({
   handler: 'SendEmail',
   tag: 'email-sender',
   args: {email: 'johndoe@example.com', fullname: 'John Doe 1'}
 });
-}, 1);
-
-setTimeout(() => {
-channelA.add({
+await channelA.add({
   handler: 'SendEmail',
+  tag: 'email-sender',
   args: {email: 'johndoe@example.com', fullname: 'John Doe 2'}
 });
-},2);
-
-setTimeout(() => {
-channelA.add({
+await channelA.add({
   handler: 'SendEmail',
+  tag: 'email-sender',
   args: {email: 'johndoe@example.com', fullname: 'John Doe 3'}
 });
-}, 3);
-
-setTimeout(() => {
-channelA.add({
+await channelA.add({
   handler: 'SendEmail',
+  tag: 'email-sender',
   args: {email: 'johndoe@example.com', fullname: 'John Doe 4'}
 });
-},4);
-
-setTimeout(() => {
-channelA.add({
+await channelA.add({
   handler: 'SendEmail',
-  args: {email: 'johndoe@example.com', fullname: 'John Doe 5'},
-  priority: 10
+  tag: 'email-sender',
+  args: {email: 'johndoe@example.com', fullname: 'John Doe 5'}
 });
-}, 5);
+
+await channelA.start();
+}, 1000);
+// setTimeout(async () => {
+// await channelA.add({
+//   handler: 'SendEmail',
+//   tag: 'email-sender',
+//   args: {email: 'johndoe@example.com', fullname: 'John Doe 1'}
+// });
+// }, 1);
+
+// setTimeout(async () => {
+// await channelA.add({
+//   handler: 'SendEmail',
+//   args: {email: 'johndoe@example.com', fullname: 'John Doe 2'}
+// });
+// },2);
+
+// setTimeout(async () => {
+// await channelA.add({
+//   handler: 'SendEmail',
+//   args: {email: 'johndoe@example.com', fullname: 'John Doe 3'}
+// });
+// }, 3);
+
+// setTimeout(async () => {
+// await channelA.add({
+//   handler: 'SendEmail',
+//   args: {email: 'johndoe@example.com', fullname: 'John Doe 4'}
+// });
+// },4);
+
+// setTimeout(async () => {
+// await channelA.add({
+//   handler: 'SendEmail',
+//   args: {email: 'johndoe@example.com', fullname: 'John Doe 5'},
+//   priority: 10
+// });
+// }, 5);

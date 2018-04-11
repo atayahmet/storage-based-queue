@@ -1,5 +1,5 @@
 export default {
-  storage: 'localstorage',
+  defaultStorage: 'localstorage',
   prefix: 'sq_jobs',
   timeout: 1000,
   limit: -1,
