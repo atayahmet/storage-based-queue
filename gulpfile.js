@@ -1,14 +1,15 @@
-var gulp = require("gulp");
-var rename = require("gulp-rename");
-var uglify = require("gulp-uglify");
-var browserify = require("browserify");
-var babelify = require("babelify");
-var source = require("vinyl-source-stream");
-var streamify = require("gulp-streamify");
-var gutil = require("gulp-util");
+const gulp = require("gulp");
+const rename = require("gulp-rename");
+const uglify = require("gulp-uglify");
+const browserify = require("browserify");
+const babelify = require("babelify");
+const source = require("vinyl-source-stream");
+const streamify = require("gulp-streamify");
+const gutil = require("gulp-util");
+const eslint = require('gulp-eslint');
 const flow = require("gulp-flowtype");
-var execSync = require("child_process").execSync;
-var flowRemoveTypes = require("flow-remove-types");
+const execSync = require("child_process").execSync;
+const flowRemoveTypes = require("flow-remove-types");
 
 gulp.task("es6", function() {
   try {
@@ -28,12 +29,30 @@ gulp.task("es6", function() {
     .pipe(source("dist/queue.js"))
     .pipe(gulp.dest(""));
 
-  gulp
-    .src(["dist/queue.js"])
-    .on('error', (e) => { console.log(e) })
-    .pipe(streamify(uglify()))
-    .pipe(rename("queue.min.js"))
-    .pipe(gulp.dest("./dist"));
+  // gulp
+  //   .src(["dist/queue.js"])
+  //   .on('error', (e) => { console.log(e) })
+  //   .pipe(streamify(uglify()))
+  //   .pipe(rename("queue.min.js"))
+  //   .pipe(gulp.dest("./dist"));
+});
+
+gulp.task('lint', () => {
+  // ESLint ignores files with "node_modules" paths.
+  // So, it's best to have gulp ignore the directory as well.
+  // Also, Be sure to return the stream from the task;
+  // Otherwise, the task may end before the stream has finished.
+  return gulp.src(['src/**/*.js','!node_modules/**'])
+      // eslint() attaches the lint output to the "eslint" property
+      // of the file object so it can be used by other modules.
+      .pipe(eslint())
+      .pipe(eslint.format())
+      // eslint.format() outputs the lint results to the console.
+      // Alternatively use eslint.formatEach() (see Docs).
+     //  .pipe(eslint.format())
+      // To have the process exit with an error code (1) on
+      // lint error, return the stream and pipe to failAfterError last.
+      .pipe(eslint.failAfterError());
 });
 
 gulp.task("stripTypes", function() {
@@ -62,7 +81,7 @@ gulp.task("stripTypes", function() {
   }
 });
 gulp.task("watch", function() {
-  gulp.watch("src/**/*.js", ["es6", "stripTypes"]);
+  gulp.watch("src/**/*.js", ["lint", "es6", "stripTypes"]);
 });
 
-gulp.task("default", ["watch"]);
+gulp.task("default", ["lint", "watch"]);

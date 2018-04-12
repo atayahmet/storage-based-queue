@@ -1,12 +1,12 @@
 /* @flow */
-import groupBy from "group-by";
-import LocalStorage from "./storage/localstorage";
-import type IConfig from "../interfaces/config";
-import type IStorage from "../interfaces/storage";
-import type ITask from "../interfaces/task";
-import Config from "./config";
-import { excludeSpecificTasks, lifo, fifo } from "./utils";
-import LocalForageAdapter from "./storage/localforage";
+import groupBy from 'group-by';
+import LocalStorage from './storage/localstorage';
+import type IConfig from '../interfaces/config';
+import type IStorage from '../interfaces/storage';
+import type ITask from '../interfaces/task';
+import Config from './config';
+import { excludeSpecificTasks, lifo, fifo } from './utils';
+import LocalForageAdapter from './storage/localforage';
 
 export default class StorageCapsule {
   config: IConfig;
@@ -19,10 +19,9 @@ export default class StorageCapsule {
   }
 
   initStorage(storage: any) {
-    if (typeof(storage) === 'object') {
+    if (typeof storage === 'object') {
       return storage;
-    }
-    else if(typeof(storage) === 'function') {
+    } else if (typeof storage === 'function') {
       return new storage(this.config);
     }
 
@@ -51,7 +50,7 @@ export default class StorageCapsule {
    */
   async fetch(): Promise<any[]> {
     const all = (await this.all()).filter(excludeSpecificTasks);
-    const tasks = groupBy(all, "priority");
+    const tasks = groupBy(all, 'priority');
     return Object.keys(tasks)
       .map(key => parseInt(key))
       .sort((a, b) => b - a)
@@ -73,11 +72,7 @@ export default class StorageCapsule {
     // Check the channel limit.
     // If limit is exceeded, does not insert new task
     if (await this.isExceeded()) {
-      console.warn(
-        `Task limit exceeded: The '${
-          this.storageChannel
-        }' channel limit is ${this.config.get("limit")}`
-      );
+      console.warn(`Task limit exceeded: The '${this.storageChannel}' channel limit is ${this.config.get('limit')}`);
       return false;
     }
 
@@ -102,7 +97,7 @@ export default class StorageCapsule {
    */
   async update(id: string, update: { [property: string]: any }): Promise<boolean> {
     const data: any[] = await this.all();
-    console.log('ddd->', data)
+    console.log('ddd->', data);
     const index: number = data.findIndex(t => t._id == id);
 
     if (index < 0) return false;
@@ -132,10 +127,7 @@ export default class StorageCapsule {
 
     delete data[index];
 
-    await this.storage.set(
-      this.storageChannel,
-      data.filter(d => d)
-    );
+    await this.storage.set(this.storageChannel, data.filter(d => d));
     return true;
   }
 
@@ -185,11 +177,10 @@ export default class StorageCapsule {
    */
   reduceTasks(tasks: ITask[]) {
     const reduceFunc = (result: ITask[], key: any): ITask[] => {
-      if (this.config.get("principle") === "lifo") {
+      if (this.config.get('principle') === 'lifo') {
         return result.concat(tasks[key].sort(lifo));
-      } else {
-        return result.concat(tasks[key].sort(fifo));
       }
+      return result.concat(tasks[key].sort(fifo));
     };
 
     return reduceFunc.bind(this);
@@ -203,7 +194,7 @@ export default class StorageCapsule {
    * @api public
    */
   async isExceeded(): Promise<boolean> {
-    const limit: number = this.config.get("limit");
+    const limit: number = this.config.get('limit');
     const tasks: ITask[] = (await this.all()).filter(excludeSpecificTasks);
     console.log('fff->', limit, tasks, !(limit === -1 || limit > tasks.length));
     return !(limit === -1 || limit > tasks.length);

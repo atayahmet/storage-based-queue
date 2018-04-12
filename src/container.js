@@ -2,10 +2,7 @@
 import type IContainer from '../interfaces/container';
 
 export default class Container implements IContainer {
-
-  constructor() {}
-
-  _container: {[property: string]: any} = {};
+  store: {[property: string]: any} = {};
 
   /**
    * Check item in container
@@ -16,7 +13,7 @@ export default class Container implements IContainer {
    * @api public
    */
   has(id: string): boolean {
-    return Object.prototype.hasOwnProperty.call(this._container, id);
+    return Object.prototype.hasOwnProperty.call(this.store, id);
   }
 
   /**
@@ -28,7 +25,7 @@ export default class Container implements IContainer {
    * @api public
    */
   get(id: string): any {
-    return this._container[id];
+    return this.store[id];
   }
 
   /**
@@ -39,7 +36,7 @@ export default class Container implements IContainer {
    * @api public
    */
   all() {
-    return this._container;
+    return this.store;
   }
 
   /**
@@ -52,7 +49,7 @@ export default class Container implements IContainer {
    * @api public
    */
   bind(id: string, value: any): void {
-    this._container[id] = value;
+    this.store[id] = value;
   }
 
   /**
@@ -64,8 +61,8 @@ export default class Container implements IContainer {
    * @api public
    */
   remove(id: string): boolean {
-    if (! this.has(id)) return false;
-    return delete this._container[id];
+    if (!this.has(id)) return false;
+    return delete this.store[id];
   }
 
   /**
@@ -76,6 +73,6 @@ export default class Container implements IContainer {
    * @api public
    */
   removeAll(): void {
-    this._container = {};
+    this.store = {};
   }
 }

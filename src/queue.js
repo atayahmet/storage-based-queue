@@ -1,19 +1,13 @@
 /* @flow */
-import type IConfig from "../interfaces/config";
-import type ITask from "../interfaces/task";
-import type IJob from "../interfaces/job";
-import type IJobInstance from "../interfaces/job";
-import LocalStorage from "./storage/localstorage";
-import Container from "./container";
-import StorageCapsule from "./storage-capsule";
-import Config from "./config";
-import Event from "./event";
+import type IConfig from '../interfaces/config';
+import type IJob from '../interfaces/job';
+import Container from './container';
+import StorageCapsule from './storage-capsule';
+import Config from './config';
+import Event from './event';
 
 import {
-  log,
   clone,
-  hasMethod,
-  isFunction,
   excludeSpecificTasks,
   utilClearByTag
 } from "./utils";

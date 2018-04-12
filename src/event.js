@@ -1,6 +1,9 @@
+/* eslint class-methods-use-this: ["error", { "exceptMethods": ["getName", "getType"] }] */
+/* eslint-env es6 */
+
 export default class Event {
   store: {[prop: string]: any} = {};
-  verifierPattern: string = /^[a-z0-9\-\_]+\:before$|after$|retry$|\*$/;
+  verifierPattern: string = /^[a-z0-9-_]+:before$|after$|retry$|\*$/;
   wildcards: string[] = ['*', 'error'];
   emptyFunc: Function = () => {};
 
@@ -23,7 +26,7 @@ export default class Event {
    * @api public
    */
   on(key: string, cb: Function): void {
-    if (typeof(cb) !== 'function') throw new Error('Event should be an function');
+    if (typeof cb !== 'function') throw new Error('Event should be an function');
     if (this.isValid(key)) this.add(key, cb);
   }
 
@@ -36,9 +39,10 @@ export default class Event {
    *
    * @api public
    */
-  emit(key: string, args: any): void {
+  emit(...args): void {
+    const [key] = args;
     if (this.wildcards.indexOf(key) > -1) {
-      this.wildcard(key, ...arguments);
+      this.wildcard(key, ...args);
     } else {
       const type: string = this.getType(key);
       const name: string = this.getName(key);
@@ -78,7 +82,7 @@ export default class Event {
    * @api public
    */
   add(key: string, cb: Function): void {
-    if (this.wildcards.indexOf(key) >-1) {
+    if (this.wildcards.indexOf(key) > -1) {
       this.store.wildcard[key] = cb;
     } else {
       const type: string = this.getType(key);
@@ -98,8 +102,8 @@ export default class Event {
   has(key: string): boolean {
     try {
       const keys: string[] = key.split(':');
-      return keys.length > 1 ? !! this.store[keys[1]][keys[0]] : !! this.store.wildcard[keys[0]];
-    } catch(e) {
+      return keys.length > 1 ? !!this.store[keys[1]][keys[0]] : !!this.store.wildcard[keys[0]];
+    } catch (e) {
       return false;
     }
   }
@@ -113,7 +117,7 @@ export default class Event {
    * @api public
    */
   getName(key: string): string {
-    return key.match(/(.*)\:.*/)[1];
+    return key.match(/(.*):.*/)[1];
   }
 
   /**
@@ -125,7 +129,7 @@ export default class Event {
    * @api public
    */
   getType(key: string): string {
-    return key.match(/^[a-z0-9\-\_]+\:(.*)/)[1];
+    return key.match(/^[a-z0-9-_]+:(.*)/)[1];
   }
 
   /**
@@ -137,6 +141,6 @@ export default class Event {
    * @api public
    */
   isValid(key: string): boolean {
-    return this.verifierPattern.test(key) || this.wildcards.indexOf(key) >-1;
+    return this.verifierPattern.test(key) || this.wildcards.indexOf(key) >- 1;
   }
 }

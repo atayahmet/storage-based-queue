@@ -21,7 +21,7 @@ export default class AsyncStorageAdapter {
    */
   async get(key: string): Promise<ITask[]> {
     const items = await AsyncStorage.getItem(this.storageName(key));
-    return (typeof(items) === 'string' ? JSON.parse(items) : items) || [];
+    return (typeof items === 'string' ? JSON.parse(items) : items) || [];
   }
 
   /**
@@ -59,7 +59,7 @@ export default class AsyncStorageAdapter {
    * @api public
    */
   async clear(key: string): Promise<any> {
-    return  await AsyncStorage.removeItem(this.storageName(key));
+    return await AsyncStorage.removeItem(this.storageName(key));
   }
 
   /**
@@ -70,7 +70,7 @@ export default class AsyncStorageAdapter {
    * @api public
    */
   async clearAll(): Promise<any> {
-    const keys: string[] = (await AsyncStorage.getAllKeys());
+    const keys: string[] = await AsyncStorage.getAllKeys();
     return await Promise.all(keys.map(async key => await this.clear(key)));
   }
 
