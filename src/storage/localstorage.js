@@ -1,8 +1,8 @@
 /* @flow */
-
-import type IStorage from '../../interfaces/storage';
-import type IConfig from '../../interfaces/storage';
+import type { IConfig, IStorage } from '../../interfaces/storage';
 import type ITask from '../../interfaces/task';
+
+/* global localStorage:true */
 
 export default class LocalStorage implements IStorage {
   storage: Object;
@@ -21,11 +21,11 @@ export default class LocalStorage implements IStorage {
    *
    * @api public
    */
-  get(key: string): Array<ITask|[]> {
+  get(key: string): Array<ITask | []> {
     try {
       const name = this.storageName(key);
       return this.has(name) ? JSON.parse(this.storage.getItem(name)) : [];
-    } catch(e) {
+    } catch (e) {
       return [];
     }
   }

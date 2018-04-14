@@ -1,8 +1,7 @@
 // @flow
-import type IStorage from '../../interfaces/storage';
-import type IConfig from '../../interfaces/storage';
-import type ITask from '../../interfaces/task';
 import localForage from 'localforage';
+import type { IStorage, IConfig } from '../../interfaces/storage';
+import type ITask from '../../interfaces/task';
 
 export default class LocalForageAdapter implements IStorage {
   config: IConfig;
@@ -38,7 +37,8 @@ export default class LocalForageAdapter implements IStorage {
    * @api public
    */
   async set(key: string, value: string): Promise<any> {
-    return await localForage.setItem(this.storageName(key), value);
+    const result = await localForage.setItem(this.storageName(key), value);
+    return result;
   }
 
   /**
@@ -63,7 +63,8 @@ export default class LocalForageAdapter implements IStorage {
    * @api public
    */
   async clear(key: string): Promise<any> {
-    return await localForage.removeItem(this.storageName(key));
+    const result = await localForage.removeItem(this.storageName(key));
+    return result;
   }
 
   /**
@@ -75,7 +76,12 @@ export default class LocalForageAdapter implements IStorage {
    */
   async clearAll(): Promise<any> {
     const keys: string[] = await localForage.keys();
-    return await Promise.all(keys.map(async key => await this.clear(key)));
+    const result = await Promise.all(keys.map(async (key) => {
+      const isClean = await this.clear(key);
+      return isClean;
+    }));
+
+    return result;
   }
 
   /**

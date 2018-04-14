@@ -4,105 +4,12 @@ import Queue from './queue';
 import { excludeSpecificTasks, log, hasMethod, isFunction } from './utils';
 import StorageCapsule from './storage-capsule';
 import type ITask from '../interfaces/task';
-import type IJob from '../interfaces/job';
-import type IJobInstance from '../interfaces/job';
+import type { IJob, IJobInstance } from '../interfaces/job';
 
-/**
- * Get unfreezed tasks by the filter function
- * Context: Queue
- *
- * @return {ITask}
- *
- * @api private
- */
-export async function getTasksWithoutFreezed(): Promise<ITask[]> {
-  return (await db
-    .call(this)
-    .all())
-    .filter(excludeSpecificTasks.bind(["freezed"]));
-}
-
-/**
- * Shortens function the db belongsto current channel
- * Context: Queue
- *
- * @return {StorageCapsule}
- *
- * @api private
- */
-export function db(): StorageCapsule {
-  return (this:any).storage.channel((this:any).currentChannel);
-}
-
-/**
- * Log proxy helper
- * Context: Queue
- *
- * @return {void}
- * @param {string} key
- * @param {string} data
- * @param {boolean} cond
- *
- * @api private
- */
-export function logProxy(key: string, data: string, cond: boolean = true): void {
-  log.call(
-    // debug mode status
-    (this:any).config.get('debug'),
-
-    // log arguments
-    ...arguments
-  );
-}
-
-/**
- * New task save helper
- * Context: Queue
- *
- * @param {ITask} task
- * @return {string|boolean}
- *
- * @api private
- */
-export async function saveTask(task: ITask): Promise<string | boolean> {
-  return await db.call(this).save(checkPriority(task));
-}
-
-/**
- * Task remove helper
- * Context: Queue
- *
- * @param {string} id
- * @return {boolean}
- *
- * @api private
- */
-export async function removeTask(id: string): Promise<boolean> {
-  return await db.call(this).delete(id);
-}
-
-/**
- * Events dispatcher helper
- * Context: Queue
- *
- * @param {ITask} task
- * @param {string} type
- * @return {void}
- *
- * @api private
- */
-export function dispatchEvents(task: ITask, type: string): boolean|void {
-  if (! ("tag" in task)) return false;
-  const events = [
-    [`${task.tag}:${type}`, 'fired'],
-    [`${task.tag}:*`, 'wildcard-fired']
-  ];
-
-  for (const event of events) {
-    this.event.emit(event[0], task);
-    logProxy.call((this:any), `event.${event[1]}`, event[0]);
-  }
-}
+/* global navigator:true */
+/* eslint no-underscore-dangle: [2, { "allow": ["_id"] }] */
+/* eslint no-param-reassign: "error" */
+/* eslint use-isnan: "error" */
 
 /**
  * Task priority controller helper
@@ -116,98 +23,105 @@ export function dispatchEvents(task: ITask, type: string): boolean|void {
 export function checkPriority(task: ITask): ITask {
   task.priority = task.priority || 0;
 
-  if (isNaN(task.priority)) task.priority = 0;
+  if (typeof task.priority !== 'number') task.priority = 0;
 
   return task;
 }
 
 /**
- * Timeout creator helper
+ * Shortens function the db belongsto current channel
  * Context: Queue
  *
- * @return {number}
+ * @return {StorageCapsule}
  *
  * @api private
  */
-export async function createTimeout(): Promise<number> {
-  // if running any job, stop it
-  // the purpose here is to prevent cocurrent operation in same channel
-  clearTimeout(this.currentTimeout);
-
-  const task: ITask = (await db.call(this).fetch()).shift();
-
-  if (task === undefined) {
-    logProxy.call(this, 'queue.empty', this.currentChannel);
-    stopQueue.call(this);
-    return 1;
-  }
-
-  if (! this.container.has(task.handler)) {
-    logProxy.call(this, 'queue.not-found', task.handler);
-    await (await failedJobHandler.call(this, task)).call();
-    return 1;
-  }
-
-  const job: IJob = this.container.get(task.handler);
-  const jobInstance: IJobInstance = new job.handler();
-
-  // get always last updated config value
-  const timeout: number = jobInstance.timeout || this.config.get("timeout");
-
-  const handler: Function = (await loopHandler.call(this, task, job, jobInstance)).bind(this);
-
-  // create new timeout for process a job in queue
-  // binding loopHandler function to setTimeout
-  // then return the timeout instance
-  return (this.currentTimeout = setTimeout(handler, timeout));
+export function db(): StorageCapsule {
+  return (this: any).storage.channel((this: any).currentChannel);
 }
 
 /**
- * Job handler helper
+ * Get unfreezed tasks by the filter function
  * Context: Queue
  *
- * @param {ITask} task
- * @param {IJob} job
- * @param {IJobInstance} jobInstance
- * @return {Function}
+ * @return {ITask}
  *
  * @api private
  */
-export function loopHandler(task: ITask, job: IJob, jobInstance: IJobInstance): Function {
-  return async function(): Promise<void> {
-    const self: Queue = this;
-
-    // lock the current task for prevent race condition
-    await lockTask.call(self, task);
-
-    // fire job before event
-    fireJobInlineEvent.call(this, "before", jobInstance, task.args);
-
-    // dispacth custom before event
-    dispatchEvents.call(this, task, "before");
-
-    // preparing worker dependencies
-    const dependencies = Object.values(job.deps || {});
-
-    // Task runner promise
-    jobInstance.handle
-      .call(jobInstance, task.args, ...dependencies)
-      .then((await successJobHandler.call(self, task, jobInstance)).bind(self))
-      .catch((await failedJobHandler.call(self, task, jobInstance)).bind(self));
-  };
+export async function getTasksWithoutFreezed(): Promise<ITask[]> {
+  return (await db.call(this).all()).filter(excludeSpecificTasks.bind(['freezed']));
 }
 
 /**
- * Helper of the lock task of the current job
+ * Log proxy helper
+ * Context: Queue
+ *
+ * @return {void}
+ * @param {string} key
+ * @param {string} data
+ * @param {boolean} cond
+ *
+ * @api private
+ */
+export function logProxy(...args: any): void {
+  log.call(
+    // debug mode status
+    (this: any).config.get('debug'),
+
+    // log arguments
+    ...args,
+  );
+}
+
+/**
+ * New task save helper
  * Context: Queue
  *
  * @param {ITask} task
+ * @return {string|boolean}
+ *
+ * @api private
+ */
+export async function saveTask(task: ITask): Promise<string | boolean> {
+  const result = await db.call(this).save(checkPriority(task));
+  return result;
+}
+
+/**
+ * Task remove helper
+ * Context: Queue
+ *
+ * @param {string} id
  * @return {boolean}
  *
  * @api private
  */
-export async function lockTask(task: ITask): Promise<boolean> {
-  return await db.call(this).update(task._id, { locked: true });
+export async function removeTask(id: string): Promise<boolean> {
+  const result = await db.call(this).delete(id);
+  return result;
+}
+
+/**
+ * Events dispatcher helper
+ * Context: Queue
+ *
+ * @param {ITask} task
+ * @param {string} type
+ * @return {void}
+ *
+ * @api private
+ */
+export function dispatchEvents(task: ITask, type: string): boolean | void {
+  if (!('tag' in task)) return false;
+
+  const events = [[`${task.tag}:${type}`, 'fired'], [`${task.tag}:*`, 'wildcard-fired']];
+
+  events.forEach((e) => {
+    this.event.emit(e[0], task);
+    logProxy.call((this: any), `event.${e[1]}`, e[0]);
+  });
+
+  return true;
 }
 
 /**
@@ -227,6 +141,40 @@ export function stopQueue(): void {
 }
 
 /**
+ * Failed job handler
+ * Context: Queue
+ *
+ * @param {ITask} task
+ * @return {ITask} job
+ * @return {Function}
+ *
+ * @api private
+ */
+export async function failedJobHandler(task: ITask): Promise<Function> {
+  return async function childFailedHandler(): Promise<void> {
+    removeTask.call(this, task._id);
+
+    this.event.emit('error', task);
+
+    await this.next();
+  };
+}
+
+/**
+ * Helper of the lock task of the current job
+ * Context: Queue
+ *
+ * @param {ITask} task
+ * @return {boolean}
+ *
+ * @api private
+ */
+export async function lockTask(task: ITask): Promise<boolean> {
+  const result = await db.call(this).update(task._id, { locked: true });
+  return result;
+}
+
+/**
  * Class event luancher helper
  * Context: Queue
  *
@@ -237,61 +185,82 @@ export function stopQueue(): void {
  *
  * @api private
  */
-export function fireJobInlineEvent(name: string, job: IJobInstance, args: any): boolean|void {
-  if (! hasMethod(job, name)) return false;
+export function fireJobInlineEvent(name: string, job: IJobInstance, args: any): boolean {
+  if (!hasMethod(job, name)) return false;
 
-  if (name == "before" && isFunction(job.before)) {
+  if (name === 'before' && isFunction(job.before)) {
     job.before.call(job, args);
-  } else if (name == "after" && isFunction(job.after)) {
+  } else if (name === 'after' && isFunction(job.after)) {
     job.after.call(job, args);
   }
+
+  return true;
 }
 
 /**
- * Succeed job handler
+ * Process handler of succeeded job
  * Context: Queue
  *
  * @param {ITask} task
  * @param {IJobInstance} job
- * @return {Function}
+ * @return {void}
  *
  * @api private
  */
-export async function successJobHandler(task: ITask, job: IJobInstance): Promise<Function> {
-  const self: Queue = this;
-  return async function(result: boolean): Promise<void> {
-    // dispatch job process after runs a task but only non error jobs
-    dispatchProcess.call(self, result, task, job);
-
-    // fire job after event
-    fireJobInlineEvent.call(self, "after", job, task.args);
-
-    // dispacth custom after event
-    dispatchEvents.call(self, task, "after");
-
-    // try next queue job
-    await self.next();
-  };
+export function successProcess(task: ITask): void {
+  removeTask.call(this, task._id);
 }
 
 /**
- * Failed job handler
+ * Update task's retry value
  * Context: Queue
  *
  * @param {ITask} task
- * @return {ITask} job
- * @return {Function}
+ * @param {IJobInstance} job
+ * @return {ITask}
  *
  * @api private
  */
-export async function failedJobHandler(task: ITask, job?: IJobInstance): Promise<Function> {
-  return async function (result: boolean): Promise<void> {
-    removeTask.call(this, task._id);
+export function updateRetry(task: ITask, job: IJobInstance): ITask {
+  if (!('retry' in job)) job.retry = 1;
 
-    this.event.emit("error", task);
+  if (!('tried' in task)) {
+    task.tried = 0;
+    task.retry = job.retry;
+  }
 
-    await this.next();
-  };
+  task.tried += 1;
+
+  if (task.tried >= job.retry) {
+    task.freezed = true;
+  }
+
+  return task;
+}
+
+/**
+ * Process handler of retried job
+ * Context: Queue
+ *
+ * @param {ITask} task
+ * @param {IJobInstance} job
+ * @return {boolean}
+ *
+ * @api private
+ */
+export async function retryProcess(task: ITask, job: IJobInstance): Promise<boolean> {
+  // dispacth custom retry event
+  dispatchEvents.call(this, task, 'retry');
+
+  // update retry value
+  const updateTask: ITask = updateRetry.call(this, task, job);
+
+  // delete lock property for next process
+  updateTask.locked = false;
+
+  const result = await db.call(this).update(task._id, updateTask);
+
+  return result;
 }
 
 /**
@@ -308,24 +277,123 @@ export async function failedJobHandler(task: ITask, job?: IJobInstance): Promise
 export function dispatchProcess(result: boolean, task: ITask, job: IJob): void {
   const self: Queue = this;
   if (result) {
-    successProcess.call(self, task, job);
+    successProcess.call(self, task);
   } else {
     retryProcess.call(self, task, job);
   }
 }
 
 /**
- * Process handler of succeeded job
+ * Succeed job handler
  * Context: Queue
  *
  * @param {ITask} task
  * @param {IJobInstance} job
- * @return {void}
+ * @return {Function}
  *
  * @api private
  */
-export function successProcess(task: ITask, job: IJobInstance): void {
-  removeTask.call(this, task._id);
+export async function successJobHandler(task: ITask, job: IJobInstance): Promise<Function> {
+  const self: Queue = this;
+  return async function childSuccessJobHandler(result: boolean): Promise<void> {
+    // dispatch job process after runs a task but only non error jobs
+    dispatchProcess.call(self, result, task, job);
+
+    // fire job after event
+    fireJobInlineEvent.call(self, 'after', job, task.args);
+
+    // dispacth custom after event
+    dispatchEvents.call(self, task, 'after');
+
+    // try next queue job
+    await self.next();
+  };
+}
+
+/**
+ * Job handler helper
+ * Context: Queue
+ *
+ * @param {ITask} task
+ * @param {IJob} job
+ * @param {IJobInstance} jobInstance
+ * @return {Function}
+ *
+ * @api private
+ */
+export function loopHandler(task: ITask, job: IJob, jobInstance: IJobInstance): Function {
+  return async function childLoopHandler(): Promise<void> {
+    const self: Queue = this;
+
+    // lock the current task for prevent race condition
+    await lockTask.call(self, task);
+
+    // fire job before event
+    fireJobInlineEvent.call(this, 'before', jobInstance, task.args);
+
+    // dispacth custom before event
+    dispatchEvents.call(this, task, 'before');
+
+    // preparing worker dependencies
+    const dependencies = Object.values(job.deps || {});
+
+    // Task runner promise
+    jobInstance.handle
+      .call(jobInstance, task.args, ...dependencies)
+      .then((await successJobHandler.call(self, task, jobInstance)).bind(self))
+      .catch((await failedJobHandler.call(self, task)).bind(self));
+  };
+}
+
+/**
+ * Timeout creator helper
+ * Context: Queue
+ *
+ * @return {number}
+ *
+ * @api private
+ */
+export async function createTimeout(): Promise<number> {
+  // if running any job, stop it
+  // the purpose here is to prevent cocurrent operation in same channel
+  clearTimeout(this.currentTimeout);
+
+  // Get next task
+  const task: ITask = (await db.call(this).fetch()).shift();
+
+  if (task === undefined) {
+    logProxy.call(this, 'queue.empty', this.currentChannel);
+    stopQueue.call(this);
+    return 1;
+  }
+
+  if (!this.container.has(task.handler)) {
+    logProxy.call(this, 'queue.not-found', task.handler);
+    await (await failedJobHandler.call(this, task)).call();
+    return 1;
+  }
+
+  // Get worker with handler name
+  const job: IJob = this.container.get(task.handler);
+
+  // Set fresh worker name avoid to eslint errors
+  const JobWorker = job.handler;
+
+  // Create a worker instance
+  const jobInstance: IJobInstance = new JobWorker();
+
+  // get always last updated config value
+  const timeout: number = jobInstance.timeout || this.config.get('timeout');
+
+  // Get handler function for handle on completed event
+  const handler: Function = (await loopHandler.call(this, task, job, jobInstance)).bind(this);
+
+  // create new timeout for process a job in queue
+  // binding loopHandler function to setTimeout
+  // then return the timeout instance
+  this.currentTimeout = setTimeout(handler, timeout);
+
+  return this.currentTimeout;
 }
 
 /**
@@ -343,29 +411,6 @@ export function statusOff(): void {
 }
 
 /**
- * Process handler of retried job
- * Context: Queue
- *
- * @param {ITask} task
- * @param {IJobInstance} job
- * @return {boolean}
- *
- * @api private
- */
-export async function retryProcess(task: ITask, job: IJobInstance): Promise<boolean> {
-  // dispacth custom retry event
-  dispatchEvents.call(this, task, "retry");
-
-  // update retry value
-  let updateTask: ITask = updateRetry.call(this, task, job);
-
-  // delete lock property for next process
-  updateTask.locked = false;
-
-  return await db.call(this).update(task._id, updateTask);
-}
-
-/**
  * Checks whether a task is replicable or not
  * Context: Queue
  *
@@ -375,36 +420,9 @@ export async function retryProcess(task: ITask, job: IJobInstance): Promise<bool
  * @api private
  */
 export async function canMultiple(task: ITask): Promise<boolean> {
-  if (typeof task !== "object" || task.unique !== true) return true;
+  if (typeof task !== 'object' || task.unique !== true) return true;
 
-  return await this.hasByTag(task.tag) < 1;
-}
-
-/**
- * Update task's retry value
- * Context: Queue
- *
- * @param {ITask} task
- * @param {IJobInstance} job
- * @return {ITask}
- *
- * @api private
- */
-export function updateRetry(task: ITask, job: IJobInstance): ITask {
-  if (!("retry" in job)) job.retry = 1;
-
-  if (!("tried" in task)) {
-    task.tried = 0;
-    task.retry = job.retry;
-  }
-
-  ++task.tried;
-
-  if (task.tried >= job.retry) {
-    task.freezed = true;
-  }
-
-  return task;
+  return (await this.hasByTag(task.tag)) < 1;
 }
 
 /**
@@ -422,11 +440,11 @@ export function registerJobs(): void {
 
   const jobs: IJob[] = Queue.jobs || [];
 
-  for (const job of jobs) {
+  jobs.forEach((job) => {
     const funcStr = job.handler.toString();
-    const [strFunction, name] = funcStr.match(/function\s([a-zA-Z_]+).*?/);
+    const [, name] = funcStr.match(/function\s([a-zA-Z_]+).*?/);
     if (name) this.container.bind(name, job);
-  }
+  });
 
   Queue.isRegistered = true;
 }
@@ -442,7 +460,7 @@ export function registerJobs(): void {
  */
 export function checkNetwork(status: boolean = navigator.onLine): boolean {
   const network = this.config.get('network');
-  return ! status && network ? false : true;
+  return !(!status && network);
 }
 
 /**
@@ -455,20 +473,7 @@ export function checkNetwork(status: boolean = navigator.onLine): boolean {
  * @api private
  */
 export function removeNetworkEvent(): void {
-  if (typeof(this.networkObserver) === 'function') this.networkObserver();
-}
-
-/**
- * if network status true, create new network event
- * Context: Queue
- *
- * @param {Boolean} network
- * @return {void}
- *
- * @api private
- */
-export function createNetworkEvent(network: boolean): void {
-  if (network) this.networkObserver = watch(queueCtrl.bind(this));
+  if (typeof this.networkObserver === 'function') this.networkObserver();
 }
 
 /**
@@ -489,4 +494,17 @@ export function queueCtrl(status: boolean): void {
     setTimeout(channel.start.bind(this), 2000);
     logProxy.call(this, 'queue.online', 'online');
   }
+}
+
+/**
+ * if network status true, create new network event
+ * Context: Queue
+ *
+ * @param {Boolean} network
+ * @return {void}
+ *
+ * @api private
+ */
+export function createNetworkEvent(network: boolean): void {
+  if (network) this.networkObserver = watch(queueCtrl.bind(this));
 }

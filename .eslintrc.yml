@@ -5,3 +5,4 @@ extends: airbnb-base
 settings:
   flowtype:
     onlyFilesWithFlowAnnotation: true
+

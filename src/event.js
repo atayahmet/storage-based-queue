@@ -2,7 +2,7 @@
 /* eslint-env es6 */
 
 export default class Event {
-  store: {[prop: string]: any} = {};
+  store: { [prop: string]: any } = {};
   verifierPattern: string = /^[a-z0-9-_]+:before$|after$|retry$|\*$/;
   wildcards: string[] = ['*', 'error'];
   emptyFunc: Function = () => {};
@@ -141,6 +141,6 @@ export default class Event {
    * @api public
    */
   isValid(key: string): boolean {
-    return this.verifierPattern.test(key) || this.wildcards.indexOf(key) >- 1;
+    return this.verifierPattern.test(key) || this.wildcards.indexOf(key) > -1;
   }
 }

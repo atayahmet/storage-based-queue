@@ -1,12 +1,14 @@
 /* @flow */
 import groupBy from 'group-by';
-import LocalStorage from './storage/localstorage';
 import type IConfig from '../interfaces/config';
 import type IStorage from '../interfaces/storage';
 import type ITask from '../interfaces/task';
-import Config from './config';
 import { excludeSpecificTasks, lifo, fifo } from './utils';
 import LocalForageAdapter from './storage/localforage';
+
+/* eslint no-console: ["error", { allow: ["warn", "error"] }] */
+/* eslint no-underscore-dangle: [2, { "allow": ["_id"] }] */
+/* eslint class-methods-use-this: ["error", { "exceptMethods": ["generateId"] }] */
 
 export default class StorageCapsule {
   config: IConfig;
@@ -18,11 +20,11 @@ export default class StorageCapsule {
     this.storage = this.initStorage(storage);
   }
 
-  initStorage(storage: any) {
-    if (typeof storage === 'object') {
-      return storage;
-    } else if (typeof storage === 'function') {
-      return new storage(this.config);
+  initStorage(Storage: any) {
+    if (typeof Storage === 'object') {
+      return Storage;
+    } else if (typeof Storage === 'function') {
+      return new Storage(this.config);
     }
 
     return new LocalForageAdapter(this.config);
@@ -52,7 +54,7 @@ export default class StorageCapsule {
     const all = (await this.all()).filter(excludeSpecificTasks);
     const tasks = groupBy(all, 'priority');
     return Object.keys(tasks)
-      .map(key => parseInt(key))
+      .map(key => parseInt(key, 10))
       .sort((a, b) => b - a)
       .reduce(this.reduceTasks(tasks), []);
   }
@@ -78,15 +80,15 @@ export default class StorageCapsule {
 
     // prepare all properties before save
     // example: createdAt etc.
-    task = this.prepareTask(task);
+    const newTask = this.prepareTask(task);
 
     // add task to storage
-    tasks.push(task);
+    tasks.push(newTask);
 
     // save tasks
     await this.storage.set(this.storageChannel, tasks);
 
-    return task._id;
+    return newTask._id;
   }
 
   /**
@@ -97,8 +99,7 @@ export default class StorageCapsule {
    */
   async update(id: string, update: { [property: string]: any }): Promise<boolean> {
     const data: any[] = await this.all();
-    console.log('ddd->', data);
-    const index: number = data.findIndex(t => t._id == id);
+    const index: number = data.findIndex(t => t._id === id);
 
     if (index < 0) return false;
 
@@ -162,9 +163,10 @@ export default class StorageCapsule {
    * @api public
    */
   prepareTask(task: ITask): ITask {
-    task.createdAt = Date.now();
-    task._id = this.generateId();
-    return task;
+    const newTask = { ...task };
+    newTask.createdAt = Date.now();
+    newTask._id = this.generateId();
+    return newTask;
   }
 
   /**
@@ -196,7 +198,6 @@ export default class StorageCapsule {
   async isExceeded(): Promise<boolean> {
     const limit: number = this.config.get('limit');
     const tasks: ITask[] = (await this.all()).filter(excludeSpecificTasks);
-    console.log('fff->', limit, tasks, !(limit === -1 || limit > tasks.length));
     return !(limit === -1 || limit > tasks.length);
   }
 

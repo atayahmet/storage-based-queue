@@ -4,6 +4,9 @@ import debug from 'debug';
 import type ITask from '../interfaces/task';
 import logEvents from './enum/log.events';
 
+/* eslint comma-dangle: ["error", "never"] */
+/* global localStorage:true */
+
 /**
  * Clone class
  *
@@ -12,22 +15,23 @@ import logEvents from './enum/log.events';
  *
  * @api public
  */
-export function clone(obj: Object) {
-  var newClass = Object.create(
-    Object.getPrototypeOf(obj),
-    Object.getOwnPropertyNames(obj).reduce((props, name) => {
-      props[name] = Object.getOwnPropertyDescriptor(obj, name);
-      return props;
-    }, {})
+export function clone(func: Object) {
+  const newClass = Object.create(
+    Object.getPrototypeOf(func),
+    Object.getOwnPropertyNames(func).reduce((props, name) => {
+      const newProps = { ...props };
+      newProps[name] = Object.getOwnPropertyDescriptor(func, name);
+      return newProps;
+    }, {}),
   );
 
-  if (! Object.isExtensible(obj)) {
+  if (!Object.isExtensible(func)) {
     Object.preventExtensions(newClass);
   }
-  if (Object.isSealed(obj)) {
+  if (Object.isSealed(func)) {
     Object.seal(newClass);
   }
-  if (Object.isFrozen(obj)) {
+  if (Object.isFrozen(func)) {
     Object.freeze(newClass);
   }
 
@@ -42,8 +46,8 @@ export function clone(obj: Object) {
  *
  * @api public
  */
-export function hasProperty(obj: Function, name: string): boolean {
-  return Object.prototype.hasOwnProperty.call(obj, name);
+export function hasProperty(func: Function, name: string): boolean {
+  return Object.prototype.hasOwnProperty.call(func, name);
 }
 
 /**
@@ -56,7 +60,7 @@ export function hasProperty(obj: Function, name: string): boolean {
  * @api public
  */
 export function hasMethod(instance: any, method: string): boolean {
-  return instance instanceof Object && (method in instance);
+  return instance instanceof Object && method in instance;
 }
 
 /**
@@ -83,11 +87,11 @@ export function excludeSpecificTasks(task: ITask): boolean {
   const conditions = Array.isArray(this) ? this : ['freezed', 'locked'];
   const results = [];
 
-  for (const c of conditions) {
+  conditions.forEach((c) => {
     results.push(hasProperty(task, c) === false || task[c] === false);
-  }
+  });
 
-  return results.indexOf(false) > -1 ? false : true;
+  return !(results.indexOf(false) > -1);
 }
 
 /**
@@ -99,7 +103,7 @@ export function excludeSpecificTasks(task: ITask): boolean {
  * @api public
  */
 export function utilClearByTag(task: ITask): boolean {
-  if (! excludeSpecificTasks.call(['locked'], task)) {
+  if (!excludeSpecificTasks.call(['locked'], task)) {
     return false;
   }
   return task.tag === this;
@@ -141,7 +145,7 @@ export function lifo(a: ITask, b: ITask): any {
  *
  * @api public
  */
-export function log(key: string, data: string = '', condition: boolean = true): void {
+export function log(key: string, data: string = ''): void {
   if (this !== true) {
     localStorage.removeItem('debug');
     return;
@@ -151,8 +155,8 @@ export function log(key: string, data: string = '', condition: boolean = true): 
   localStorage.setItem('debug', 'worker:*');
 
   // get new debug function instance
-  const log = debug(`worker:${data} ->`);
+  const logger = debug(`worker:${data} ->`);
 
   // the output push to console
-  log(obj.get(logEvents, key));
+  logger(obj.get(logEvents, key));
 }

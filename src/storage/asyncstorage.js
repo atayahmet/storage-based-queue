@@ -1,8 +1,9 @@
 // @flow
-import type IStorage from '../../interfaces/storage';
+import { AsyncStorage } from 'react-native';
 import type ITask from '../../interfaces/task';
 import type IConfig from '../../interfaces/config';
-import { AsyncStorage } from 'react-native';
+
+/* eslint import/no-extraneous-dependencies: ["error", {"peerDependencies": true}] */
 
 export default class AsyncStorageAdapter {
   config: IConfig;
@@ -34,7 +35,8 @@ export default class AsyncStorageAdapter {
    * @api public
    */
   async set(key: string, value: string): Promise<any> {
-    return await AsyncStorage.setItem(this.storageName(key), JSON.stringify(value));
+    const result = await AsyncStorage.setItem(this.storageName(key), JSON.stringify(value));
+    return result;
   }
 
   /**
@@ -59,7 +61,8 @@ export default class AsyncStorageAdapter {
    * @api public
    */
   async clear(key: string): Promise<any> {
-    return await AsyncStorage.removeItem(this.storageName(key));
+    const result = await AsyncStorage.removeItem(this.storageName(key));
+    return result;
   }
 
   /**
@@ -71,7 +74,11 @@ export default class AsyncStorageAdapter {
    */
   async clearAll(): Promise<any> {
     const keys: string[] = await AsyncStorage.getAllKeys();
-    return await Promise.all(keys.map(async key => await this.clear(key)));
+    const result = await Promise.all(keys.map(async (key) => {
+      const isClean = await this.clear(key);
+      return isClean;
+    }));
+    return result;
   }
 
   /**
