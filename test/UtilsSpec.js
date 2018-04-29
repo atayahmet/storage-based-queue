@@ -1,18 +1,17 @@
-import * as utils from "../lib/utils";
+import * as utils from '../src/utils';
 
 describe('Utils functions tests', () => {
-
   function exampleFunc() {
     this.test = 'Hello';
   }
 
-  exampleFunc.prototype.run = function() {
+  exampleFunc.prototype.run = function () {
     this.test2 = 'World';
-  }
+  };
 
   it('should be clone an function, -> clone()', () => {
-    const exmp1 = new exampleFunc;
-    const exmp2 = new exampleFunc;
+    const exmp1 = new exampleFunc();
+    const exmp2 = new exampleFunc();
     expect(utils.clone(exmp1)).toEqual(exmp2);
     expect(exmp1.test).toEqual(exmp2.test);
 
@@ -21,25 +20,25 @@ describe('Utils functions tests', () => {
   });
 
   it('should be check property in an object, -> hasProperty()', () => {
-    const a = {a: 'Hello World'};
+    const a = { a: 'Hello World' };
     expect(utils.hasProperty(a, 'a')).toBeTruthy();
     expect(utils.hasProperty(a, 'b')).toBeFalsy();
   });
 
   it('should be check method in a function, -> hasMethod()', () => {
-    const exmp1 = new exampleFunc;
+    const exmp1 = new exampleFunc();
     expect(utils.hasMethod(exmp1, 'run')).toBeTruthy();
     expect(utils.hasMethod(exmp1, 'run2')).toBeFalsy();
   });
 
   it('should be check a variable whether function, -> isFunction()', () => {
-    const exmp1 = new exampleFunc;
+    const exmp1 = new exampleFunc();
     expect(utils.isFunction(exmp1.run)).toBeTruthy();
     expect(utils.isFunction(exmp1.test)).toBeFalsy();
   });
 
   it('should be check specific keys in object, -> exludeSpecificTask()', () => {
-    const task = {freezed: true, locked: true, worker: 'SendEmail' };
+    const task = { freezed: true, locked: true, worker: 'SendEmail' };
     expect(utils.excludeSpecificTasks(task)).toBeFalsy();
 
     delete task.freezed;
@@ -52,7 +51,9 @@ describe('Utils functions tests', () => {
   });
 
   it('should be check specific tags in object, -> utilClearByTag()', () => {
-    const task = {tag: 'test', freezed: true, locked: true, worker: 'SendEmail' };
+    const task = {
+      tag: 'test', freezed: true, locked: true, worker: 'SendEmail',
+    };
 
     expect(utils.utilClearByTag(task)).toBeFalsy();
 
@@ -64,8 +65,8 @@ describe('Utils functions tests', () => {
   it('should be manage log input/output, -> log()', () => {
     delete localStorage.debug;
     utils.log.call(true, 'queue.starting');
-    expect(localStorage['debug']).toBeDefined();
+    expect(localStorage.debug).toBeDefined();
     utils.log.call(false, 'queue.starting');
-    expect(localStorage['debug']).not.toBeDefined();
+    expect(localStorage.debug).not.toBeDefined();
   });
 });

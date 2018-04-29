@@ -1,20 +1,29 @@
-import StorageCapsule from "../lib/storage-capsule";
-import LocalStorage from "../lib/storage/localstorage";
-import Config from "../lib/config";
-import Queue from "../lib/queue";
+import StorageCapsule from '../src/storage-capsule';
+import Config from '../src/config';
+import Queue from '../src/queue';
 
 describe('Storage capsule class tests', () => {
+  const config = new Config();
+  let exmpTask,
+    defaultTimeout,
+    storageCapsule;
+  const { storage } = Queue.drivers;
 
-  const config = new Config;
-  const lStorage = new LocalStorage(config);
-  let storage, exmpTask, defaultTimeout;
-
-  beforeEach(() => {
-    exmpTask = {tag: 'test', handler: 'SendEmail', priority: 1, args: 'jobs args 2'};
-    storage = new StorageCapsule(config, lStorage);
+  beforeEach(async () => {
+    exmpTask = {
+      tag: 'test',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'jobs args 2',
+    };
+    storageCapsule = new StorageCapsule(config, storage);
     defaultTimeout = 1000;
-    lStorage.clear('test-1');
-    lStorage.clear('test-2');
+    await storageCapsule.clear('channel-a');
+    await storageCapsule.clear('channel-b');
+    await storageCapsule.clear('channel-c');
+    await storageCapsule.clear('channel-d');
+    await storageCapsule.clear('channel-e');
+    await storageCapsule.clear('channel-f');
   });
 
   afterEach(() => {
@@ -22,178 +31,169 @@ describe('Storage capsule class tests', () => {
   });
 
   it('should be select channel, -> channel()', () => {
-    storage.channel('test-1');
-    expect(storage.storageChannel).toEqual('test-1');
+    storageCapsule.channel('channel-a-1');
+    expect(storageCapsule.storageChannel).toEqual('channel-a-1');
 
-    storage.channel('test-2');
-    expect(storage.storageChannel).toEqual('test-2');
+    storageCapsule.channel('channel-a-2');
+    expect(storageCapsule.storageChannel).toEqual('channel-a-2');
   });
 
-  it('should be save task payload to storage, -> save()', () => {
-    storage.channel('test-1');
-    storage.save(exmpTask);
-    expect(lStorage.get('test-1').shift()).toEqual(exmpTask);
-
-    storage.channel('test-2');
-
-    const task = lStorage.get('test-1').shift();
+  it('should be save task payload to storage, -> save()', async () => {
+    storageCapsule.channel('channel-b-1');
+    await storageCapsule.save(exmpTask);
+    const { _id, createdAt, ...task } = (await storageCapsule.storage.get('channel-b-1')).shift();
     expect(task).toEqual(exmpTask);
+    expect(_id).toBeDefined();
+    expect(createdAt).toBeDefined();
 
-    expect(task._id).toBeDefined();
-    expect(task.createdAt).toBeDefined();
+    storageCapsule.channel('channel-b-2');
+    await storageCapsule.save(exmpTask);
 
-    expect(() => storage.save(2)).toThrow();
+    const task2 = (await storageCapsule.storage.get('channel-b-2')).shift();
+    expect(task2._id).toBeDefined();
+    expect(task2.createdAt).toBeDefined();
+
+    delete task2._id;
+    delete task2.createdAt;
+    expect(task2).toEqual(exmpTask);
+    expect(task2).toEqual(exmpTask);
+    expect(await storageCapsule.save(2)).toBeFalsy();
   });
 
-  it('should be not insert new task, if task limit exceeded, -> save()', () => {
-    storage.channel('test-1');
+  it('shouldn`t be insert new task, if task limit exceeded, -> save()', async () => {
+    storageCapsule.channel('channel-c');
 
     config.set('limit', 1);
-    spyOn(storage, 'isExceeded').andReturn(false).andCallThrough();
-    expect(storage.save(exmpTask)).toBeTruthy();
+    expect(await storageCapsule.isExceeded()).toBeFalsy();
+    expect(await storageCapsule.save(exmpTask)).toBeTruthy();
+    expect(await storageCapsule.isExceeded()).toBeTruthy();
 
-    expect(storage.save(exmpTask)).toBeFalsy();
-    expect(storage.fetch().length).toEqual(1);
+    expect(await storageCapsule.save(exmpTask)).toBeFalsy();
+    expect((await storageCapsule.fetch()).length).toEqual(1);
 
     config.set('limit', 2);
-    expect(storage.save(exmpTask)).toBeTruthy();
-    expect(storage.fetch().length).toEqual(2);
-    expect(storage.save(exmpTask)).toBeFalsy();
+    expect(await storageCapsule.save(exmpTask)).toBeTruthy();
+    expect((await storageCapsule.fetch()).length).toEqual(2);
+    expect(await storageCapsule.save(exmpTask)).toBeFalsy();
   });
 
-  it('should be update task in storage, -> update()', () => {
-    storage.channel('test-1');
-    storage.save(exmpTask);
-
-    const task = lStorage.get('test-1').shift();
+  it('should be update task in storage, -> update()', async () => {
+    storageCapsule.channel('channel-d');
+    await storageCapsule.save(exmpTask);
+    const task = (await storageCapsule.storage.get('channel-d')).shift();
     expect(task.tag).toEqual(exmpTask.tag);
-
-    const result = storage.update(task._id, {tag: 'test2'});
-
+    const result = await storageCapsule.update(task._id, { tag: 'test2' });
     expect(result).toBeTruthy();
-
-    const updatedTask = lStorage.get('test-1').shift();
+    const updatedTask = (await storageCapsule.storage.get('channel-d')).shift();
     expect(updatedTask.tag).toEqual('test2');
-
-    const failResult = storage.update(task._id+'-1', {tag: 'test3'});
+    const failResult = await storageCapsule.update(`${task._id}-1`, { tag: 'test3' });
     expect(failResult).toBeFalsy();
   });
 
-  it('should be delete a payload from storage, -> delete()', () => {
-    storage.channel('test-1');
-    storage.save(exmpTask);
-    storage.save(exmpTask);
+  it('should be delete a payload from storage, -> delete()', async () => {
+    storageCapsule.channel('channel-e');
 
-    const tasks = lStorage.get('test-1');
+    await storageCapsule.save(exmpTask);
+    await storageCapsule.save(exmpTask);
+
+    const tasks = await storageCapsule.storage.get('channel-e');
     const id = tasks.shift()._id;
 
-    expect(storage.delete(id)).toBeTruthy();
+    expect(await storageCapsule.delete(id)).toBeTruthy();
 
-    const updatedTasks = lStorage.get('test-1');
+    const updatedTasks = await storageCapsule.storage.get('channel-e');
     expect(updatedTasks.findIndex(t => t._id === id)).toBeLessThan(0);
-
-    expect(storage.delete(423423)).toBeFalsy();
+    expect(await storageCapsule.delete(423423)).toBeFalsy();
   });
 
-  it('should be fetch workable tasks, -> fetch()', () => {
-    storage.channel('test-1');
+  it('should be fetch workable tasks, -> fetch()', async () => {
+    storageCapsule.channel('channel-f');
 
-    expect(lStorage.get('test-1').length).toBeLessThan(1);
+    expect((await storageCapsule.storage.get('test-1')).length).toBeLessThan(1);
 
-    storage.save(exmpTask);
-    storage.save(exmpTask);
+    await storageCapsule.save(exmpTask);
+    await storageCapsule.save(exmpTask);
 
-    expect(storage.fetch().length).toEqual(2);
+    expect((await storageCapsule.fetch()).length).toEqual(2);
 
-    const newTask = Object.assign({}, exmpTask, {locked: true});
-    storage.save(newTask);
-    expect(storage.fetch().length).toEqual(2);
+    const newTask = Object.assign({}, exmpTask, { locked: true });
+    await storageCapsule.save(newTask);
+    expect((await storageCapsule.fetch()).length).toEqual(2);
 
-    const newTask2 = Object.assign({}, exmpTask, {freezed: true});
-    storage.save(newTask2);
-    expect(storage.fetch().length).toEqual(2);
+    const newTask2 = Object.assign({}, exmpTask, { freezed: true });
+    await storageCapsule.save(newTask2);
+    expect((await storageCapsule.fetch()).length).toEqual(2);
 
-    storage.save(exmpTask);
-    expect(storage.fetch().length).toEqual(3);
+    await storageCapsule.save(exmpTask);
+    expect((await storageCapsule.fetch()).length).toEqual(3);
 
-    const newTask3 = Object.assign({}, exmpTask, {freezed: false});
-    storage.save(newTask3);
-    expect(storage.fetch().length).toEqual(4);
+    const newTask3 = Object.assign({}, exmpTask, { freezed: false });
+    await storageCapsule.save(newTask3);
+    expect((await storageCapsule.fetch()).length).toEqual(4);
 
-    const newTask4 = Object.assign({}, exmpTask, {locked: false});
-    storage.save(newTask4);
-    expect(storage.fetch().length).toEqual(5);
+    const newTask4 = Object.assign({}, exmpTask, { locked: false });
+    await storageCapsule.save(newTask4);
+    expect((await storageCapsule.fetch()).length).toEqual(5);
   });
 
-  it('should be sort tasks by fifo/lifo, -> fetch()', () => {
-    storage.channel('test-1');
-
-    let flag = false;
-    runs(() => {
-      setTimeout(() => {
-        const newTask1 = Object.assign({}, exmpTask, {tag: 'test-1'});
-        storage.save(newTask1);
-      }, (defaultTimeout + 100));
-
-      setTimeout(() => {
-        const newTask2 = Object.assign({}, exmpTask, {tag: 'test-2'});
-        storage.save(newTask2);
-        flag = true;
-      }, (defaultTimeout + 200));
-    });
-
-    waitsFor(() => {
-      return flag;
-    }, "", (defaultTimeout + 300));
-
-    runs(() => {
-      config.set('principle', Queue.FIFO);
-      expect(storage.fetch()[0].tag).toEqual('test-1');
-      config.set('principle', Queue.LIFO);
-      expect(storage.fetch()[0].tag).toEqual('test-2');
-    });
+  it('should be sort tasks by fifo/lifo, -> fetch()', async (done) => {
+    storageCapsule.channel('channel-g');
+    setTimeout(async () => {
+      const newTask1 = Object.assign({}, exmpTask, { tag: 'test-1' });
+      await storageCapsule.save(newTask1);
+    }, 0);
+    setTimeout(async () => {
+      const newTask2 = Object.assign({}, exmpTask, { tag: 'test-2' });
+      await storageCapsule.save(newTask2);
+    }, 100);
+    setTimeout(async () => {
+      storageCapsule.config.set('principle', Queue.FIFO);
+      expect((await storageCapsule.fetch())[0].tag).toEqual('test-1');
+      storageCapsule.config.set('principle', Queue.LIFO);
+      expect((await storageCapsule.fetch())[0].tag).toEqual('test-2');
+      done();
+    }, 101);
   });
 
-  it('should be get all tasks, -> all()', () => {
-    storage.channel('test-1');
+  it('should be get all tasks, -> all()', async () => {
+    storageCapsule.channel('channel-h');
 
-    storage.save(exmpTask);
-    storage.save(exmpTask);
+    await storageCapsule.save(exmpTask);
+    await storageCapsule.save(exmpTask);
+    expect((await storageCapsule.all()).length).toEqual(2);
 
-    expect(storage.all().length).toEqual(2);
-
-    const newTask1 = Object.assign({}, exmpTask, {freezed: true});
-    storage.save(newTask1);
-    expect(storage.all().length).toEqual(3);
+    const newTask1 = Object.assign({}, exmpTask, { freezed: true });
+    await storageCapsule.save(newTask1);
+    expect((await storageCapsule.all()).length).toEqual(3);
   });
 
   it('should be prepare a task, -> prepareTask()', () => {
-    storage.channel('test-1');
+    storageCapsule.channel('test-1');
 
     expect(exmpTask._id).not.toBeDefined();
     expect(exmpTask.createdAt).not.toBeDefined();
 
-    const task = storage.prepareTask(exmpTask);
+    const task = storageCapsule.prepareTask(exmpTask);
 
     expect(task._id).toBeDefined();
     expect(task.createdAt).toBeDefined();
   });
 
-  it('should be generate unique id, -> generateId()', () => {
-    expect(typeof(storage.generateId()) === 'string').toBeTruthy();
+  it('should be generate unique id, -> generateId()', async () => {
+    expect(typeof storageCapsule.generateId() === 'string').toBeTruthy();
   });
 
-  it('should be remove storage by given channel name, -> clear', () => {
-    storage.channel('test-1');
-    expect(storage.all().length).toEqual(0);
+  it('should be remove storage by given channel name, -> clear', async () => {
+    storageCapsule.channel('test-1');
+    expect((await storageCapsule.all()).length).toEqual(0);
 
-    storage.save(exmpTask);
-    storage.save(exmpTask);
+    await storageCapsule.save(exmpTask);
+    await storageCapsule.save(exmpTask);
 
-    expect(storage.all().length).toEqual(2);
+    expect((await storageCapsule.all()).length).toEqual(2);
 
-    storage.clear('test-1');
+    await storageCapsule.clear('test-1');
 
-    expect(storage.all().length).toEqual(0);
+    expect((await storageCapsule.all()).length).toEqual(0);
   });
 });

@@ -1,142 +1,191 @@
-import Config from "../lib/config";
-import Queue from "../lib/queue";
-import LocalStorage from "../lib/storage/localstorage";
+import Config from '../src/config';
+import Queue from '../src/queue';
+import StorageCapsule from './../src/storage-capsule';
+import { InMemoryAdapter, LocalForageAdapter } from './../src/adapters';
 import SendEmail from './ExampleWorker';
 
 describe('Queue class tests', () => {
-  let queue, storage, config, defaultTimeout;
+  let queue,
+    storageCapsule,
+    config,
+    defaultTimeout;
+  const { storage } = Queue.drivers;
 
-  beforeEach(() => {
-    Queue.register([
-      { handler: SendEmail}
-    ]);
+  beforeEach(async () => {
+    Queue.workers({
+      SendEmail,
+    });
 
-    defaultTimeout = 1000;
-    config = new Config;
-    queue = new Queue;
-    storage = new LocalStorage(config);
+    defaultTimeout = 1500;
+    config = new Config();
+    queue = new Queue();
+    storageCapsule = new StorageCapsule(config, storage);
   });
 
-  afterEach(() => {
-    storage.clear('channel-a');
+  afterEach(async () => {
+    storageCapsule.clear('channel-a');
+    storageCapsule.clear('channel-driver');
     queue.setLimit(-1);
-  })
+  });
 
   it('should be register queue worker', () => {
-    Queue.register([
-      { handler: SendEmail},
-      { handler: SendEmail}
-    ]);
+    const SendMessage = SendEmail;
+    Queue.workers({ SendEmail, SendMessage });
 
-    expect(Queue.jobs.length).toBeGreaterThan(1);
+    expect(Object.keys(Queue.queueWorkers).length).toBeGreaterThan(1);
 
-    expect(() => Queue.register('worker')).toThrow();
+    expect(() => Queue.workers('worker')).toThrow();
   });
 
-  it('should did force the queue including the current task, ->forceStop()', () => {
+  it('should did force the queue including the current task, ->forceStop()', async () => {
     const channelA = queue.create('channel-a');
-    channelA.start();
-    expect(channelA.countByTag('tag:channel-a')).toEqual(0)
-    channelA.add({tag: 'tag:channel-a', handler: 'SendEmail', priority: 1, args: 'jobs args 2'});
-    expect(channelA.countByTag('tag:channel-a')).toEqual(1);
+    await channelA.start();
+    expect(await channelA.countByTag('tag:channel-a')).toEqual(0);
+    await channelA.add({
+      tag: 'tag:channel-a',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'jobs args 2',
+    });
+    expect(await channelA.countByTag('tag:channel-a')).toEqual(1);
     channelA.forceStop();
-    expect(channelA.countByTag('tag:channel-a')).toEqual(1);
+    expect(await channelA.countByTag('tag:channel-a')).toEqual(1);
   });
 
-  it('should be add new task to queue, -> add()', () => {
+  it('should be add single unique task, -> add()', async () => {
+    const newQueue = new Queue();
+    const channelA = newQueue.create('queue-channel-a');
+    expect(await channelA.count()).toEqual(0);
+    const task1 = await channelA.add({
+      unique: true,
+      tag: 'unique-channel',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'next parameters 1',
+    });
+    const task2 = await channelA.add({
+      unique: true,
+      tag: 'unique-channel',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'next parameters 1',
+    });
+    const task3 = await channelA.add({
+      unique: true,
+      tag: 'unique-channel',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'next parameters 1',
+    });
+    const task4 = await channelA.add({
+      unique: true,
+      tag: 'unique-channel',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'next parameters 1',
+    });
+    const task5 = await channelA.add({
+      unique: true,
+      tag: 'unique-channel',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'next parameters 1',
+    });
+    expect(task2).toBeFalsy();
+    expect(await channelA.count()).toEqual(1);
+    await channelA.add({
+      unique: true,
+      tag: 'channel-a',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'next parameters 1',
+    });
+    expect(await channelA.count()).toEqual(2);
+  });
+
+  it('should be add new task to queue, -> add()', async (done) => {
     expect(queue.running).toBeFalsy();
 
-    const channelA = queue.create('channel-a');
-    channelA.start();
+    const newQueue = new Queue;
+    const channelA = newQueue.create('channel-aa');
+    await channelA.start();
     spyOn(channelA, 'start');
 
     expect(channelA.start).not.toHaveBeenCalled();
     expect(channelA.running).toBeTruthy();
 
-    channelA.add({tag: 'tag:channel-a', handler: 'SendEmail', priority: 1, args: 'jobs args 2'});
-    channelA.add({tag: 'tag:channel-a', handler: 'SendEmail', priority: 1, args: 'jobs args 2'});
-
-    let flag = false;
-    runs(() => {
-      setTimeout(() => {
-        flag = true;
-      }, (defaultTimeout + 1));
+    await channelA.add({
+      tag: 'tag:channel-aa',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'jobs args 2',
+    });
+    await channelA.add({
+      tag: 'tag:channel-aa',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'jobs args 2',
     });
 
-    waitsFor(() => {
-      return flag;
-    }, "The Value should be true", (defaultTimeout + 2));
-
-    runs(() => {
-      const index = storage.get('channel-a').findIndex(c => c.tag === 'tag:channel-a');
+    setTimeout(async () => {
+      const index = (await storageCapsule.storage.get('channel-aa')).findIndex(c => c.tag === 'tag:channel-aa');
+      console.log('index->', index, await storageCapsule.storage.get('channel-aa'))
       expect(index).toBeGreaterThan(-1);
       expect(channelA.start).toHaveBeenCalled();
-    });
+      done();
+    }, defaultTimeout + 1);
   });
 
-  it('should be add single unique task, -> add()', () => {
+  it('should be run next task, -> next()', async (done) => {
     const channelA = queue.create('channel-a');
-    expect(channelA.count()).toEqual(0);
-    channelA.add({unique: true, tag: 'unique-channel', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
-    channelA.add({unique: true, tag: 'unique-channel', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
-    channelA.add({unique: true, tag: 'unique-channel', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
-    channelA.add({unique: true, tag: 'unique-channel', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
-    channelA.add({unique: true, tag: 'unique-channel', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
-    expect(channelA.count()).toEqual(1);
-    channelA.add({unique: true, tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
-    expect(channelA.count()).toEqual(2);
-  });
-
-  it('should be run next task, -> next()', () => {
-    const channelA = queue.create('channel-a');
-    channelA.start();
+    await channelA.start();
 
     spyOn(channelA, 'next');
 
-    channelA.add({tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
-    channelA.add({tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
-
-    let flag = false;
-    runs(() => {
-      setTimeout(() => {
-        flag = true;
-      }, 2001);
+    await channelA.add({
+      tag: 'channel-a',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'next parameters 1',
+    });
+    await channelA.add({
+      tag: 'channel-a',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'next parameters 1',
     });
 
-    waitsFor(() => {
-      return flag;
-    }, "The Value should be true", 2002);
-
-    runs(() => {
+    setTimeout(() => {
       expect(channelA.next).toHaveBeenCalled();
       expect(channelA.stopped).toBeFalsy();
-    });
+      done();
+    }, 2001);
   });
 
-  it('should not be run next task, -> next()', () => {
+  it('should not be run next task, -> next()', async (done) => {
     const channelA = queue.create('channel-a');
-    channelA.start();
+    await channelA.start();
 
-
-    channelA.add({tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
+    await channelA.add({
+      tag: 'channel-a',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'next parameters 1',
+    });
     spyOn(channelA, 'start');
     channelA.stop();
 
-    let flag = false;
-    runs(() => {
-      setTimeout(() => {
-        flag = true;
-      }, (defaultTimeout + 1));
-    });
-
-    waitsFor(() => {
-      return flag;
-    }, "The Value should be true", (defaultTimeout + 2));
-
-    runs(() => {
+    setTimeout(() => {
       expect(channelA.start).not.toHaveBeenCalled();
       expect(channelA.stopped).toBeTruthy();
-    });
+      done();
+    }, defaultTimeout + 1);
+  });
+
+  it('should be return when queue listener run again, -> next()', async () => {
+    const channelA = queue.create('channel-b');
+    channelA.stopped = false;
+    expect(await channelA.next()).toBeTruthy();
   });
 
   it('should be create new channel, -> create()', () => {
@@ -153,133 +202,163 @@ describe('Queue class tests', () => {
     const channelA = queue.create('channel-a');
 
     expect(channelA.channel('channel-a') instanceof Queue).toBeTruthy();
-    expect(() => { channelA.channel('channel-a2') }).toThrow();
+    expect(() => {
+      channelA.channel('channel-a2');
+    }).toThrow();
   });
 
-  it('should be change job runner delay, -> setTimeout()', () => {
-    queue.start();
+  it('should be change job runner delay, -> setTimeout()', async () => {
+    const channelA = queue.create('channel-timeout');
 
-    const channelA = queue.create('channel-a');
-
+    await channelA.start();
     expect(channelA.timeout).toEqual(1000);
 
     channelA.setTimeout(2000);
     expect(channelA.timeout).toEqual(2000);
-
-    channelA.add({tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'next parameters 1'});
-
-    let flag = false;
-    runs(() => {
-      setTimeout(() => {
-        flag = true;
-      }, 2001);
-    });
-
-    waitsFor(() => {
-      return flag;
-    }, "The Value should be true", 2002);
-
-    runs(() => {
-      expect(storage.get('channel-a').length).toBeLessThan(1);
-    });
   });
 
-  it('should be return true if queue stack empty, -> isEmpty()', () => {
+  it('should be return true if queue stack empty, -> isEmpty()', async (done) => {
     const channelA = queue.create('channel-a');
 
-    expect(channelA.isEmpty()).toBeTruthy();
-    channelA.add({tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'any parameters'});
-    expect(channelA.isEmpty()).toBeFalsy();
-    channelA.start();
-
-    let flag = false;
-    runs(() => {
-      setTimeout(() => {
-        flag = true;
-      }, (defaultTimeout + 1));
+    expect(await channelA.isEmpty()).toBeTruthy();
+    channelA.add({
+      tag: 'channel-a',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'any parameters',
     });
+    expect(await channelA.isEmpty()).toBeTruthy();
+    await channelA.start();
 
-    waitsFor(() => {
-      return flag;
-    }, "The Value should be true", (defaultTimeout + 2));
+    setTimeout(async () => {
+      expect(await channelA.isEmpty()).toBeTruthy();
+      done();
+    }, defaultTimeout + 1);
+  });
 
-    runs(() => {
-      expect(channelA.isEmpty()).toBeTruthy();
+  it('should be return total available tasks count, -> count()', async () => {
+    const channelA = queue.create('channel-a');
+    expect(await channelA.count()).toEqual(0);
+  });
+
+  it('should be return total available tasks count by tag, -> countByTag()', async () => {
+    const channelA = queue.create('channel-a');
+    await channelA.add({
+      tag: 'channel-a',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'any parameters',
     });
+    expect(await channelA.countByTag('channel-a')).toEqual(1);
   });
 
-  it('should be return total available tasks count, -> count()', () => {
+  it('should be clear all tasks in current channel, -> clear()', async () => {
     const channelA = queue.create('channel-a');
-    expect(channelA.count()).toEqual(0);
+    await channelA.add({
+      tag: 'channel-a',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'any parameters',
+    });
+    expect(await channelA.count()).toEqual(1);
+    await channelA.clear();
+    expect(await channelA.count()).toEqual(0);
   });
 
-  it('should be return total available tasks count by tag, -> countByTag()', () => {
+  it('if current channel null, should return false, -> clear()', async () => {
     const channelA = queue.create('channel-a');
-    channelA.add({tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'any parameters'});
-
-    expect(channelA.countByTag('channel-a')).toEqual(1);
-    channelA.add({tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'any parameters'});
-    expect(channelA.countByTag('channel-a')).toEqual(2);
-  });
-
-  it('should be clear all tasks in current channel, -> clear()', () => {
-    const channelA = queue.create('channel-a');
-    expect(channelA.count()).toEqual(0);
-    channelA.add({tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'any parameters'});
-    expect(channelA.count()).toEqual(1);
-    channelA.clear();
-    expect(channelA.count()).toEqual(0);
     channelA.currentChannel = null;
-    channelA.clear();
+    expect(await channelA.clear()).toBeFalsy();
   });
 
-  it('should be clear all tasks by tag in current channel, -> clearByTag()', () => {
+  it('should be clear all tasks by tag in current channel, -> clearByTag()', async () => {
+    const channelA = queue.create('queue-channel-b');
+    await channelA.add({
+      tag: 'member-register',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'any parameters',
+    });
+    await channelA.add({
+      tag: 'member-payment',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'any parameters',
+    });
+    expect(await channelA.count()).toEqual(2);
+    await channelA.clearByTag('member-payment');
+    expect(await channelA.count()).toEqual(1);
+  });
+
+  it('should be check a task by queue id, -> has()', async () => {
     const channelA = queue.create('channel-a');
-    channelA.add({tag: 'member-register', handler: 'SendEmail', priority: 1, args: 'any parameters'});
-    channelA.add({tag: 'member-payment', handler: 'SendEmail', priority: 1, args: 'any parameters'});
-    expect(channelA.count()).toEqual(2);
+    expect(await channelA.has('a3a3fafa3')).toBeFalsy();
 
-    channelA.clearByTag('member-payment');
-    expect(channelA.count()).toEqual(1);
+    const id = await channelA.add({
+      tag: 'member-register',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'any parameters',
+    });
+    expect(await channelA.has(id)).toBeTruthy();
   });
 
-  it('should be check a task by queue id, -> has()', () => {
-    const channelA = queue.create('channel-a');
-    expect(channelA.has('a3a3fafa3')).toBeFalsy();
-
-    const id = channelA.add({tag: 'member-register', handler: 'SendEmail', priority: 1, args: 'any parameters'});
-    expect(channelA.has(id)).toBeTruthy();
-  });
-
-  it('should be check a task by tag, -> hasByTag()', () => {
+  it('should be check a task by tag, -> hasByTag()', async () => {
     const channelA = queue.create('channel-a');
 
-    expect(channelA.hasByTag('member-register')).toBeFalsy();
-    const id = channelA.add({tag: 'member-register', handler: 'SendEmail', priority: 1, args: 'any parameters'});
-    expect(channelA.hasByTag('member-register')).toBeTruthy();
+    expect(await channelA.hasByTag('member-register')).toBeFalsy();
+    const id = await channelA.add({
+      tag: 'member-register',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'any parameters',
+    });
+    expect(await channelA.hasByTag('member-register')).toBeTruthy();
   });
 
-  it('should be set limit value of config, -> setLimit()', () => {
+  it('should be set limit value of config, -> setLimit()', async () => {
     queue.setLimit(1);
     const channelA = queue.create('channel-a');
-    channelA.add({tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'any parameters'});
-    channelA.add({tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'any parameters'});
-    expect(channelA.count()).toEqual(1);
+    await channelA.add({
+      tag: 'channel-a',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'any parameters',
+    });
+    await channelA.add({
+      tag: 'channel-a',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'any parameters',
+    });
+    expect(await channelA.count()).toEqual(1);
   });
 
-  it('should be set prefix value of config, ->setPrefix()', () => {
+  it('should be set prefix value of config, ->setPrefix()', async () => {
     queue.setPrefix('browser_queue');
     const channelA = queue.create('channel-a');
-    channelA.add({tag: 'channel-a', handler: 'SendEmail', priority: 1, args: 'any parameters'});
-    expect(localStorage['browser_queue_channel-a']).toBeDefined();
+    await channelA.add({
+      tag: 'channel-a',
+      handler: 'SendEmail',
+      priority: 1,
+      args: 'any parameters',
+    });
+
+    expect(await storageCapsule.storage.get('browser_queue_channel-a')).toBeDefined();
   });
 
   it('should be set debug value of config, ->setDebug()', () => {
-    config.set('debug', false)
+    config.set('debug', false);
     queue.setDebug(true);
     expect(queue.config.get('debug')).toBeTruthy();
     queue.setDebug(false);
     expect(queue.config.get('debug')).toBeFalsy();
+  });
+
+  it('should be set debug value of config, ->setStorage()', () => {
+    expect(queue.config.get('storage')).toBeUndefined();
+    queue.setStorage('inmemory');
+    expect(queue.config.get('storage')).toEqual('inmemory')
   });
 
   it('should be set principle of config', () => {
@@ -290,14 +369,6 @@ describe('Queue class tests', () => {
     expect(queue.config.get('principle')).toEqual(Queue.LIFO);
   });
 
-  it('should be set network value of config, ->setNetwork()', () => {
-    config.set('network', false)
-    queue.setNetwork(true);
-    expect(queue.config.get('network')).toBeTruthy();
-    queue.setNetwork(false);
-    expect(queue.config.get('network')).toBeFalsy();
-  });
-
   it('should create an event, -> on()', () => {
     queue.on('test:before', () => {});
     expect('test' in queue.event.store.before).toBeTruthy();
@@ -306,5 +377,20 @@ describe('Queue class tests', () => {
   it('should create an error event, -> error()', () => {
     queue.on('error', () => 'test');
     expect(queue.event.store.wildcard.error()).toEqual('test');
+  });
+
+  it('save dependencies, -> deps()', () => {
+    const depMock = {test: ['dep1', 'dep2']};
+    expect(() => Queue.deps('xxx')).toThrowError("The parameters should be object.");
+    Queue.deps(depMock);
+    expect(Queue.workerDeps).toBe(depMock);
+  });
+
+  it('driver declaration, -> use()', async () => {
+    expect(queue.storage.storage instanceof LocalForageAdapter).toBeTruthy();
+    Queue.use({ storage: InMemoryAdapter });
+    const newQueue = new Queue();
+    const channelA = newQueue.create('channel-driver');
+    expect(channelA.storage.storage instanceof InMemoryAdapter).toBeTruthy();
   });
 });

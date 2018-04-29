@@ -1,13 +1,14 @@
-import Event from '../lib/event';
+import Event from '../src/event';
 
-describe("Event manager tests", function() {
-
-  let defaultCallback, event, exampleArgs;
+describe('Event manager tests', () => {
+  let defaultCallback,
+    event,
+    exampleArgs;
 
   beforeEach(() => {
     defaultCallback = () => {};
-    exampleArgs = {ninja: 'Hello World!'};
-    event = new Event;
+    exampleArgs = { ninja: 'Hello World!' };
+    event = new Event();
     event.on('test:before', defaultCallback);
     event.on('test2:before', defaultCallback);
     event.on('test:after', defaultCallback);
@@ -24,7 +25,7 @@ describe("Event manager tests", function() {
     event = null;
   });
 
-  it("should be return true or false as result about the events, -> has()", () => {
+  it('should be return true or false as result about the events, -> has()', () => {
     expect('test' in event.store.before).toBeTruthy();
     expect(event.has('test:before')).toBeTruthy();
 
@@ -58,7 +59,7 @@ describe("Event manager tests", function() {
     expect(event.has('test3:before')).toBeFalsy();
   });
 
-  it("should be register events, -> on()", function() {
+  it('should be register events, -> on()', () => {
     expect(event.store.before.test.toString()).toContain('defaultCallback');
     expect(event.store.after.test.toString()).toContain('defaultCallback');
     expect(event.store.retry.test.toString()).toContain('defaultCallback');
@@ -67,24 +68,24 @@ describe("Event manager tests", function() {
     expect(event.store.wildcard.error.toString()).toContain('defaultCallback');
   });
 
-  it("should did throw error if not function, -> on()", function() {
+  it('should did throw error if not function, -> on()', () => {
     expect(() => event.on('test:*', 'error')).toThrow();
   });
 
-  it("should be add new event, -> add()", () => {
+  it('should be add new event, -> add()', () => {
     spyOn(event, 'add');
     event.on('test:before', defaultCallback);
-    expect(event.add).toHaveBeenCalledWith('test:before', defaultCallback)
+    expect(event.add).toHaveBeenCalledWith('test:before', defaultCallback);
   });
 
-  it("should not be add new event, -> add()", () => {
+  it('should not be add new event, -> add()', () => {
     spyOn(event, 'add');
     event.on('test:before2', defaultCallback);
     expect(event.has('test:before2')).toBeFalsy();
     expect(event.add).not.toHaveBeenCalled();
   });
 
-  it("should be get the event name, -> getName()", () => {
+  it('should be get the event name, -> getName()', () => {
     expect(event.getName('test:before')).toEqual('test');
     expect(event.getName('test2:before')).toEqual('test2');
   });

@@ -2,7 +2,7 @@
 import type IContainer from '../interfaces/container';
 
 export default class Container implements IContainer {
-  store: {[property: string]: any} = {};
+  store: { [property: string]: any } = {};
 
   /**
    * Check item in container
@@ -50,6 +50,18 @@ export default class Container implements IContainer {
    */
   bind(id: string, value: any): void {
     this.store[id] = value;
+  }
+
+  /**
+   * Merge continers
+   *
+   * @param  {Object} data
+   * @return {void}
+   *
+   * @api public
+   */
+  merge(data: { [property: string]: any } = {}): void {
+    this.store = Object.assign({}, this.store, data);
   }
 
   /**

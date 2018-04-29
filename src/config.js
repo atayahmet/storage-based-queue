@@ -1,6 +1,6 @@
 /* @flow */
 import type IConfig from '../interfaces/config';
-import configData from './config.data';
+import configData from './enum/config.data';
 
 export default class Config {
   config: IConfig = configData;
@@ -54,7 +54,7 @@ export default class Config {
    *
    * @api public
    */
-  merge(config: {[string]: any}): void {
+  merge(config: { [string]: any }): void {
     this.config = Object.assign({}, this.config, config);
   }
 

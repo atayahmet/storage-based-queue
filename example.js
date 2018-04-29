@@ -1,83 +1,80 @@
-
-    function SendEmail() {
-
-}
+function SendEmail() {}
 
 SendEmail.prototype.retry = 2;
-SendEmail.prototype.handle = function(args) {
+SendEmail.prototype.handle = function (args, p1, p2) {
   try {
-      return new Promise((resolve, reject) => {
-        console.log('hellooo', args);
-        resolve(true);
-      });
-    } catch(e) {
-      reject('rejected')
-    }
+    return new Promise((resolve, reject) => {
+      console.log('hellooo', args, p1, p2);
+      resolve(true);
+    });
+  } catch (e) {
+    reject('rejected');
+  }
 };
 
-Queue.register([
-  {handler: SendEmail}
-]);
+// Queue.use({storage: AsyncStorage})
+Queue.workers({ SendEmail });
+Queue.deps({ SendEmail: ['hello', 'hello 2'] });
 
 const queue = new Queue({
-  storage: 'localstorage',
+  storage: 'inmemory',
   prefix: 'sq_jobsx',
   timeout: 1000,
   limit: 1,
   principle: Queue.FIFO,
-  debug: true
+  debug: true,
 });
 
 queue.setLimit(-1);
 // queue.setDebug(true);
 queue.setPrefix('hello');
 
-queue.on('email-sender:before', function() {
-   console.log('test-3 beforeeee');
+queue.on('email-sender:before', () => {
+  console.log('test-3 beforeeee');
 });
 
-queue.on('email-sender:after', function() {
-   console.log('test-3 after');
+queue.on('email-sender:after', () => {
+  console.log('test-3 after');
 });
 
-queue.on('email-sender:*', function() {
-   console.log('test-3 wildcard');
+queue.on('email-sender:*', () => {
+  console.log('test-3 wildcard');
 });
 
-queue.on('*', function () {
+queue.on('*', () => {
   console.log('wild card');
 });
 
 const channelA = queue.create('mailing');
 
 setTimeout(async () => {
-await channelA.add({
-  handler: 'SendEmail',
-  tag: 'email-sender',
-  args: {email: 'johndoe@example.com', fullname: 'John Doe 1'}
-});
-await channelA.add({
-  handler: 'SendEmail',
-  tag: 'email-sender',
-  args: {email: 'johndoe@example.com', fullname: 'John Doe 2'}
-});
-await channelA.add({
-  handler: 'SendEmail',
-  tag: 'email-sender',
-  args: {email: 'johndoe@example.com', fullname: 'John Doe 3'}
-});
-await channelA.add({
-  handler: 'SendEmail',
-  tag: 'email-sender',
-  args: {email: 'johndoe@example.com', fullname: 'John Doe 4'}
-});
-await channelA.add({
-  handler: 'SendEmail',
-  tag: 'email-sender',
-  args: {email: 'johndoe@example.com', fullname: 'John Doe 5'}
-});
+  await channelA.add({
+    handler: 'SendEmail',
+    tag: 'email-sender',
+    args: { email: 'johndoe@example.com', fullname: 'John Doe 1' },
+  });
+  await channelA.add({
+    handler: 'SendEmail',
+    tag: 'email-sender',
+    args: { email: 'johndoe@example.com', fullname: 'John Doe 2' },
+  });
+  await channelA.add({
+    handler: 'SendEmail',
+    tag: 'email-sender',
+    args: { email: 'johndoe@example.com', fullname: 'John Doe 3' },
+  });
+  await channelA.add({
+    handler: 'SendEmail',
+    tag: 'email-sender',
+    args: { email: 'johndoe@example.com', fullname: 'John Doe 4' },
+  });
+  await channelA.add({
+    handler: 'SendEmail',
+    tag: 'email-sender',
+    args: { email: 'johndoe@example.com', fullname: 'John Doe 5' },
+  });
 
-await channelA.start();
+  await channelA.start();
 }, 1000);
 // setTimeout(async () => {
 // await channelA.add({

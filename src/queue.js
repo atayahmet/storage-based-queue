@@ -1,6 +1,6 @@
 /* @flow */
 import type IConfig from '../interfaces/config';
-import type IJob from '../interfaces/job';
+import Channel from './channel';
 import Container from './container';
 import StorageCapsule from './storage-capsule';
 import Config from './config';
@@ -11,36 +11,34 @@ import { clone, utilClearByTag } from './utils';
 import {
   getTasksWithoutFreezed,
   createTimeout,
-  registerJobs,
+  registerWorkers,
   canMultiple,
   stopQueue,
   statusOff,
   logProxy,
   saveTask,
-  checkNetwork,
-  createNetworkEvent,
-  removeNetworkEvent,
   db,
 } from './helpers';
 
 /* eslint no-underscore-dangle: [2, { "allow": ["_id"] }] */
 
-function Queue(config: IConfig) {
+export default function Queue(config: IConfig) {
   this.channels = {};
   this.config = new Config(config);
-  this.storage = new StorageCapsule(this.config, Queue.storageDriver);
+
+  // if custom storage driver exists, setup it
+  const { storage } = Queue.drivers;
+  this.storage = new StorageCapsule(this.config, storage);
 
   // Default job timeout
   this.timeout = this.config.get('timeout');
-
-  const network = this.config.get('network');
-
-  // network observer
-  createNetworkEvent.call(this, network);
 }
 
 Queue.FIFO = 'fifo';
 Queue.LIFO = 'lifo';
+Queue.drivers = {};
+Queue.queueWorkers = {};
+Queue.workerDeps = {};
 
 Queue.prototype.currentChannel = null;
 Queue.prototype.stopped = true;
@@ -57,7 +55,7 @@ Queue.prototype.container = new Container();
  * @api public
  */
 Queue.prototype.add = async function add(task): Promise<string | boolean> {
-  if (!canMultiple.call(this, task)) return false;
+  if (!(await canMultiple.call(this, task))) return false;
 
   const id = await saveTask.call(this, task);
 
@@ -78,15 +76,18 @@ Queue.prototype.add = async function add(task): Promise<string | boolean> {
  *
  * @api public
  */
-Queue.prototype.next = async function next(): Promise<any> {
+Queue.prototype.next = async function next(): Promise<void | boolean> {
   if (this.stopped) {
     statusOff.call(this);
     return stopQueue.call(this);
   }
 
+  // Generate a log message
   logProxy.call(this, 'queue.next', 'next');
 
+  // start queue again
   await this.start();
+
   return true;
 };
 
@@ -98,13 +99,11 @@ Queue.prototype.next = async function next(): Promise<any> {
  * @api public
  */
 Queue.prototype.start = async function start(): Promise<boolean> {
-  if (!checkNetwork.call(this)) return false;
-
   // Stop the queue for restart
   this.stopped = false;
 
   // Register tasks, if not registered
-  registerJobs.call(this);
+  registerWorkers.call(this);
 
   logProxy.call(this, 'queue.starting', 'start');
 
@@ -134,6 +133,7 @@ Queue.prototype.stop = function stop(): void {
  * @api public
  */
 Queue.prototype.forceStop = function forceStop(): void {
+  /* istanbul ignore next */
   stopQueue.call(this);
 };
 
@@ -149,6 +149,7 @@ Queue.prototype.create = function create(channel: string): Queue {
   if (!(channel in this.channels)) {
     this.currentChannel = channel;
     this.channels[channel] = clone(this);
+    // this.channels[channel] = new Channel(channel);
   }
 
   return this.channels[channel];
@@ -226,9 +227,13 @@ Queue.prototype.clear = function clear(): boolean {
  * @api public
  */
 Queue.prototype.clearByTag = async function clearByTag(tag: string): Promise<void> {
-  (await db.call(this).all())
-    .filter(utilClearByTag.bind(tag))
-    .forEach(t => db.call(this).delete(t._id));
+  const self = this;
+  const data = await db.call(self).all();
+  const removes = data.filter(utilClearByTag.bind(tag)).map(async (t) => {
+    const result = await db.call(self).delete(t._id);
+    return result;
+  });
+  await Promise.all(removes);
 };
 
 /**
@@ -316,24 +321,6 @@ Queue.prototype.setDebug = function setDebug(val: boolean): void {
   this.config.set('debug', val);
 };
 
-/**
- * Set config network value
- *
- * @param  {Boolean} val
- * @return {Void}
- *
- * @api public
- */
-Queue.prototype.setNetwork = function setNetwork(val: boolean): void {
-  this.config.set('network', val);
-
-  // clear network event if it exists
-  removeNetworkEvent.call(this);
-
-  // if value true, create new network event
-  createNetworkEvent.call(this, val);
-};
-
 Queue.prototype.setStorage = function setStorage(val: string): void {
   this.config.set('storage', val);
 };
@@ -360,17 +347,39 @@ Queue.prototype.on = function on(key: string, cb: Function): void {
  *
  * @api public
  */
-Queue.register = function register(jobs: Array<IJob>): void {
-  if (!(jobs instanceof Array)) {
-    throw new Error('Queue jobs should be objects within an array');
+Queue.workers = function workers(workersObj: { [prop: string]: any } = {}): void {
+  if (!(workersObj instanceof Object)) {
+    throw new Error('The parameters should be object.');
   }
 
   Queue.isRegistered = false;
-  Queue.jobs = jobs;
+  Queue.queueWorkers = workersObj;
 };
 
-Queue.storage = function storageDriver(storage) {
-  Queue.storageDriver = storage;
+/**
+ * Added workers dependencies
+ *
+ * @param  {Object} driver
+ * @return {Void}
+ *
+ * @api public
+ */
+Queue.deps = function deps(dependencies: { [prop: string]: any } = {}): void {
+  if (!(dependencies instanceof Object)) {
+    throw new Error('The parameters should be object.');
+  }
+
+  Queue.workerDeps = dependencies;
 };
 
-export default Queue;
+/**
+ * Setup a custom driver
+ *
+ * @param  {Object} driver
+ * @return {Void}
+ *
+ * @api public
+ */
+Queue.use = function use(driver: { [prop: string]: any } = {}): void {
+  Queue.drivers = { ...Queue.drivers, ...driver };
+};

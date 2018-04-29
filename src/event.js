@@ -39,10 +39,9 @@ export default class Event {
    *
    * @api public
    */
-  emit(...args): void {
-    const [key] = args;
+  emit(key: string, args: any): void {
     if (this.wildcards.indexOf(key) > -1) {
-      this.wildcard(key, ...args);
+      this.wildcard(key, ...[key, args]);
     } else {
       const type: string = this.getType(key);
       const name: string = this.getName(key);

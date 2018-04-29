@@ -1,6 +1,7 @@
 // @flow
 import localForage from 'localforage';
-import type { IStorage, IConfig } from '../../interfaces/storage';
+import type { IStorage } from '../../interfaces/storage';
+import type { IConfig } from '../../interfaces/config';
 import type ITask from '../../interfaces/task';
 
 export default class LocalForageAdapter implements IStorage {
@@ -36,7 +37,7 @@ export default class LocalForageAdapter implements IStorage {
    *
    * @api public
    */
-  async set(key: string, value: string): Promise<any> {
+  async set(key: string, value: any[]): Promise<any> {
     const result = await localForage.setItem(this.storageName(key), value);
     return result;
   }
@@ -77,10 +78,9 @@ export default class LocalForageAdapter implements IStorage {
   async clearAll(): Promise<any> {
     const keys: string[] = await localForage.keys();
     const result = await Promise.all(keys.map(async (key) => {
-      const isClean = await this.clear(key);
-      return isClean;
+      const cleared = await this.clear(key);
+      return cleared;
     }));
-
     return result;
   }
 
@@ -93,7 +93,7 @@ export default class LocalForageAdapter implements IStorage {
    * @api public
    */
   storageName(suffix: string) {
-    return `${this.getPrefix()}_${suffix}`;
+    return suffix.startsWith(this.getPrefix()) ? suffix : `${this.getPrefix()}_${suffix}`;
   }
 
   /**
@@ -109,7 +109,7 @@ export default class LocalForageAdapter implements IStorage {
 
   getDriver() {
     const defaultDriver: string = this.config.get('defaultStorage');
-    const driver: string = this.config.get('storage').toLowerCase() || defaultDriver;
+    const driver: string = (this.config.get('storage') || defaultDriver).toLowerCase();
     return this.drivers.indexOf(driver) > -1
       ? localForage[driver.toUpperCase()]
       : localForage[defaultDriver.toUpperCase()];

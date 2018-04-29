@@ -1,10 +1,10 @@
 /* @flow */
 import groupBy from 'group-by';
 import type IConfig from '../interfaces/config';
-import type IStorage from '../interfaces/storage';
+import type { IStorage } from '../interfaces/storage';
 import type ITask from '../interfaces/task';
+import { LocalForageAdapter, InMemoryAdapter } from './adapters';
 import { excludeSpecificTasks, lifo, fifo } from './utils';
-import LocalForageAdapter from './storage/localforage';
 
 /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
 /* eslint no-underscore-dangle: [2, { "allow": ["_id"] }] */
@@ -15,7 +15,7 @@ export default class StorageCapsule {
   storage: IStorage;
   storageChannel: string;
 
-  constructor(config: IConfig, storage: IStorage | null) {
+  constructor(config: IConfig, storage: IStorage) {
     this.config = config;
     this.storage = this.initStorage(storage);
   }
@@ -25,6 +25,8 @@ export default class StorageCapsule {
       return Storage;
     } else if (typeof Storage === 'function') {
       return new Storage(this.config);
+    } else if (this.config.get('storage') === 'inmemory') {
+      return new InMemoryAdapter(this.config);
     }
 
     return new LocalForageAdapter(this.config);
@@ -68,6 +70,8 @@ export default class StorageCapsule {
    * @api public
    */
   async save(task: ITask): Promise<string | boolean> {
+    if (typeof task !== 'object') return false;
+
     // get all tasks current channel's
     const tasks: ITask[] = await this.storage.get(this.storageChannel);
 
@@ -101,6 +105,7 @@ export default class StorageCapsule {
     const data: any[] = await this.all();
     const index: number = data.findIndex(t => t._id === id);
 
+    // if index not found, return false
     if (index < 0) return false;
 
     // merge existing object with given update object
@@ -129,6 +134,7 @@ export default class StorageCapsule {
     delete data[index];
 
     await this.storage.set(this.storageChannel, data.filter(d => d));
+
     return true;
   }
 
@@ -139,8 +145,9 @@ export default class StorageCapsule {
    *
    * @api public
    */
-  all(): Promise<ITask[]> {
-    return this.storage.get(this.storageChannel);
+  async all(): Promise<ITask[]> {
+    const items = await this.storage.get(this.storageChannel);
+    return items;
   }
 
   /**
@@ -209,7 +216,7 @@ export default class StorageCapsule {
    *
    * @api public
    */
-  clear(channel: string): void {
-    this.storage.clear(channel);
+  async clear(channel: string): Promise<void> {
+    await this.storage.clear(channel);
   }
 }

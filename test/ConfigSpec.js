@@ -1,10 +1,10 @@
-import Config from "../lib/config";
+import Config from '../src/config';
 
 describe('Config class tests', () => {
   let config;
 
   beforeEach(() => {
-    config = new Config({})
+    config = new Config({});
     config.set('test', true);
   });
 
@@ -18,13 +18,17 @@ describe('Config class tests', () => {
   });
 
   it('should be check an item, ->has()', () => {
+    expect(config.has('test2')).toBeFalsy();
+    config.set('test2', true);
+    expect(config.has('test2')).toBeTruthy();
+
     expect(config.has('test')).toBeTruthy();
     config.remove('test');
     expect(config.has('test')).toBeFalsy();
   });
 
   it('should be merge multiple config objects, -> merge()', () => {
-    config.merge({test2: false, test3: true});
+    config.merge({ test2: false, test3: true });
     expect(config.has('test2')).toBeTruthy();
     expect(config.get('test2')).toBeFalsy();
     expect(config.has('test3')).toBeTruthy();
@@ -32,7 +36,7 @@ describe('Config class tests', () => {
   });
 
   it('should be remove an item, -> remove()', () => {
-    config.merge({test2: false});
+    config.merge({ test2: false });
     expect(config.has('test2')).toBeTruthy();
     config.remove('test2');
     expect(config.has('test2')).toBeFalsy();
