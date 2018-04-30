@@ -61,12 +61,12 @@ describe('Helper functions tests', () => {
 
   it('should be save task, -> saveTask()', () => {
     expect(saveTask.call(channelA, genericTask)).toBeTruthy();
-    expect(queue.hasByTag('tag:channel-a')).toBeTruthy();
+    expect(channelA.hasByTag('tag:channel-a')).toBeTruthy();
   });
 
   it('should be save task, -> saveTask()', () => {
     expect(saveTask.call(channelA, genericTask)).toBeTruthy();
-    expect(queue.hasByTag('tag:channel-a')).toBeTruthy();
+    expect(channelA.hasByTag('tag:channel-a')).toBeTruthy();
   });
 
   it('should be dispatch events, -> dispatchEvents()', () => {

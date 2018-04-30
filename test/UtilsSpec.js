@@ -9,16 +9,6 @@ describe('Utils functions tests', () => {
     this.test2 = 'World';
   };
 
-  it('should be clone an function, -> clone()', () => {
-    const exmp1 = new exampleFunc();
-    const exmp2 = new exampleFunc();
-    expect(utils.clone(exmp1)).toEqual(exmp2);
-    expect(exmp1.test).toEqual(exmp2.test);
-
-    exmp1.test = 'Hi!';
-    expect(exmp1.test).not.toEqual(exmp2.test);
-  });
-
   it('should be check property in an object, -> hasProperty()', () => {
     const a = { a: 'Hello World' };
     expect(utils.hasProperty(a, 'a')).toBeTruthy();
@@ -52,7 +42,10 @@ describe('Utils functions tests', () => {
 
   it('should be check specific tags in object, -> utilClearByTag()', () => {
     const task = {
-      tag: 'test', freezed: true, locked: true, worker: 'SendEmail',
+      tag: 'test',
+      freezed: true,
+      locked: true,
+      worker: 'SendEmail',
     };
 
     expect(utils.utilClearByTag(task)).toBeFalsy();
