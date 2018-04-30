@@ -34,9 +34,6 @@ export default class Channel {
   constructor(name: string, config: IConfig) {
     this.config = config;
 
-    // Default worker circle timeout
-    this.timeout = this.config.get('timeout');
-
     // save channel name to this class with symbolic key
     (this: Object)[channelName] = name;
 
@@ -46,6 +43,13 @@ export default class Channel {
     this.storage = storage.channel(name);
   }
 
+  /**
+   * Get channel name
+   *
+   * @return {String} channel name
+   *
+   * @api public
+   */
   name(): string {
     return (this: Object)[channelName];
   }

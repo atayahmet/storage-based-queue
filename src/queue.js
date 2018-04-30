@@ -55,7 +55,6 @@ Queue.prototype.channel = function channel(name: string): Queue {
  * @api public
  */
 Queue.prototype.setTimeout = function setTimeout(val: number): void {
-  this.timeout = val;
   this.config.set('timeout', val);
 };
 

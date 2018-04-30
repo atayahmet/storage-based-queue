@@ -4,7 +4,6 @@
 [libs]
 ./flow-typed/object-path
 ./flow-typed/debug
-./flow-typed/is-offline
 ./flow-typed/group-by
 
 [lints]

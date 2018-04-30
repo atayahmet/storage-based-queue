@@ -61,8 +61,7 @@ export default class InMemoryAdapter implements IStorage {
    * @api public
    */
   async clear(key: string): Promise<any> {
-    const collName = this.storageName(key);
-    const result = (await this.has(key)) ? delete this.store[collName] : false;
+    const result = (await this.has(key)) ? delete this.store[this.storageName(key)] : false;
     this.store = { ...this.store };
     return result;
   }

@@ -1,4 +1,5 @@
 import StorageCapsule from '../src/storage-capsule';
+import { LocalForageAdapter, InMemoryAdapter } from '../src/adapters';
 import Config from '../src/config';
 import Queue from '../src/queue';
 
@@ -195,5 +196,14 @@ describe('Storage capsule class tests', () => {
     await storageCapsule.clear('test-1');
 
     expect((await storageCapsule.all()).length).toEqual(0);
+  });
+
+  it('should be initialize and return the storage driver, -> initStorage()', () => {
+    expect(storageCapsule.initialize() instanceof LocalForageAdapter).toBeTruthy();
+    const lfStorage = new LocalForageAdapter(config);
+    expect(storageCapsule.initialize(lfStorage) instanceof LocalForageAdapter).toBeTruthy();
+
+    config.set('storage', 'inmemory');
+    expect(storageCapsule.initialize() instanceof InMemoryAdapter).toBeTruthy();
   });
 });

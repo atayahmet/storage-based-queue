@@ -17,10 +17,10 @@ export default class StorageCapsule {
 
   constructor(config: IConfig, storage: IStorage) {
     this.config = config;
-    this.storage = this.initStorage(storage);
+    this.storage = this.initialize(storage);
   }
 
-  initStorage(Storage: any) {
+  initialize(Storage: any) {
     if (typeof Storage === 'object') {
       return Storage;
     } else if (typeof Storage === 'function') {
@@ -28,7 +28,6 @@ export default class StorageCapsule {
     } else if (this.config.get('storage') === 'inmemory') {
       return new InMemoryAdapter(this.config);
     }
-
     return new LocalForageAdapter(this.config);
   }
 
