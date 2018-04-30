@@ -19,7 +19,7 @@ Queue.deps({ SendEmail: ['hello', 'hello 2'] });
 const queue = new Queue({
   storage: 'inmemory',
   prefix: 'sq_jobsx',
-  timeout: 1000,
+  timeout: 10,
   limit: 1,
   principle: Queue.FIFO,
   debug: true,
@@ -27,25 +27,26 @@ const queue = new Queue({
 
 queue.setLimit(-1);
 // queue.setDebug(true);
-queue.setPrefix('hello');
+queue.setPrefix('hellos');
+queue.setTimeout(1001);
 
-queue.on('email-sender:before', () => {
+const channelA = queue.create('mailing');
+
+channelA.on('email-sender:before', () => {
   console.log('test-3 beforeeee');
 });
 
-queue.on('email-sender:after', () => {
+channelA.on('email-sender:after', () => {
   console.log('test-3 after');
 });
 
-queue.on('email-sender:*', () => {
+channelA.on('email-sender:*', () => {
   console.log('test-3 wildcard');
 });
 
-queue.on('*', () => {
+channelA.on('*', () => {
   console.log('wild card');
 });
-
-const channelA = queue.create('mailing');
 
 setTimeout(async () => {
   await channelA.add({

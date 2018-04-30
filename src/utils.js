@@ -8,37 +8,6 @@ import logEvents from './enum/log.events';
 /* global localStorage:true */
 
 /**
- * Clone class
- *
- * @param  {Object} obj
- * @return {Object}
- *
- * @api public
- */
-export function clone(func: Object) {
-  const newClass = Object.create(
-    Object.getPrototypeOf(func),
-    Object.getOwnPropertyNames(func).reduce((props, name) => {
-      const newProps = { ...props };
-      newProps[name] = Object.getOwnPropertyDescriptor(func, name);
-      return newProps;
-    }, {}),
-  );
-
-  if (!Object.isExtensible(func)) {
-    Object.preventExtensions(newClass);
-  }
-  if (Object.isSealed(func)) {
-    Object.seal(newClass);
-  }
-  if (Object.isFrozen(func)) {
-    Object.freeze(newClass);
-  }
-
-  return newClass;
-}
-
-/**
  * Check property in object
  *
  * @param  {Object} obj

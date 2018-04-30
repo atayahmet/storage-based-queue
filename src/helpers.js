@@ -1,5 +1,6 @@
 /* @flow */
 import Queue from './queue';
+import Channel from './channel';
 import { excludeSpecificTasks, log, hasMethod, isFunction } from './utils';
 import StorageCapsule from './storage-capsule';
 import type ITask from '../interfaces/task';
@@ -11,7 +12,7 @@ import type IWorker from '../interfaces/worker';
 
 /**
  * Task priority controller helper
- * Context: Queue
+ * Context: Channel
  *
  * @return {ITask}
  * @param {ITask} task
@@ -28,19 +29,19 @@ export function checkPriority(task: ITask): ITask {
 
 /**
  * Shortens function the db belongsto current channel
- * Context: Queue
+ * Context: Channel
  *
  * @return {StorageCapsule}
  *
  * @api private
  */
 export function db(): StorageCapsule {
-  return (this: any).storage.channel((this: any).currentChannel);
+  return (this: any).storage.channel((this: any).name());
 }
 
 /**
  * Get unfreezed tasks by the filter function
- * Context: Queue
+ * Context: Channel
  *
  * @return {ITask}
  *
@@ -52,7 +53,7 @@ export async function getTasksWithoutFreezed(): Promise<ITask[]> {
 
 /**
  * Log proxy helper
- * Context: Queue
+ * Context: Channel
  *
  * @return {void}
  * @param {string} key
@@ -73,7 +74,7 @@ export function logProxy(...args: any): void {
 
 /**
  * New task save helper
- * Context: Queue
+ * Context: Channel
  *
  * @param {ITask} task
  * @return {string|boolean}
@@ -87,7 +88,7 @@ export async function saveTask(task: ITask): Promise<string | boolean> {
 
 /**
  * Task remove helper
- * Context: Queue
+ * Context: Channel
  *
  * @param {string} id
  * @return {boolean}
@@ -101,7 +102,7 @@ export async function removeTask(id: string): Promise<boolean> {
 
 /**
  * Events dispatcher helper
- * Context: Queue
+ * Context: Channel
  *
  * @param {ITask} task
  * @param {string} type
@@ -124,7 +125,7 @@ export function dispatchEvents(task: ITask, type: string): boolean | void {
 
 /**
  * Queue stopper helper
- * Context: Queue
+ * Context: Channel
  *
  * @return {void}
  *
@@ -140,7 +141,7 @@ export function stopQueue(): void {
 
 /**
  * Failed job handler
- * Context: Queue
+ * Context: Channel
  *
  * @param {ITask} task
  * @return {ITask} job
@@ -161,7 +162,7 @@ export async function failedJobHandler(task: ITask): Promise<Function> {
 
 /**
  * Helper of the lock task of the current job
- * Context: Queue
+ * Context: Channel
  *
  * @param {ITask} task
  * @return {boolean}
@@ -175,7 +176,7 @@ export async function lockTask(task: ITask): Promise<boolean> {
 
 /**
  * Class event luancher helper
- * Context: Queue
+ * Context: Channel
  *
  * @param {string} name
  * @param {IWorker} worker
@@ -194,7 +195,7 @@ export function fireJobInlineEvent(name: string, worker: IWorker, args: any): bo
 
 /**
  * Process handler of succeeded job
- * Context: Queue
+ * Context: Channel
  *
  * @param {ITask} task
  * @return {void}
@@ -207,7 +208,7 @@ export function successProcess(task: ITask): void {
 
 /**
  * Update task's retry value
- * Context: Queue
+ * Context: Channel
  *
  * @param {ITask} task
  * @param {IWorker} worker
@@ -234,7 +235,7 @@ export function updateRetry(task: ITask, worker: IWorker): ITask {
 
 /**
  * Process handler of retried job
- * Context: Queue
+ * Context: Channel
  *
  * @param {ITask} task
  * @param {IWorker} worker
@@ -259,7 +260,7 @@ export async function retryProcess(task: ITask, worker: IWorker): Promise<boolea
 
 /**
  * Succeed job handler
- * Context: Queue
+ * Context: Channel
  *
  * @param {ITask} task
  * @param {IWorker} worker
@@ -268,7 +269,7 @@ export async function retryProcess(task: ITask, worker: IWorker): Promise<boolea
  * @api private
  */
 export async function successJobHandler(task: ITask, worker: IWorker): Promise<Function> {
-  const self: Queue = this;
+  const self: Channel = this;
   return async function childSuccessJobHandler(result: boolean): Promise<void> {
     // dispatch job process after runs a task but only non error jobs
     if (result) {
@@ -292,7 +293,7 @@ export async function successJobHandler(task: ITask, worker: IWorker): Promise<F
 
 /**
  * Job handler helper
- * Context: Queue
+ * Context: Channel
  *
  * @param {ITask} task
  * @param {IJob} worker
@@ -308,7 +309,7 @@ export /* istanbul ignore next */ function loopHandler(
   workerInstance: IWorker,
 ): Function {
   return async function childLoopHandler(): Promise<void> {
-    const self: Queue = this;
+    const self: Channel = this;
 
     // lock the current task for prevent race condition
     await lockTask.call(self, task);
@@ -334,7 +335,7 @@ export /* istanbul ignore next */ function loopHandler(
 
 /**
  * Timeout creator helper
- * Context: Queue
+ * Context: Channel
  *
  * @return {number}""
  *
@@ -367,7 +368,7 @@ export async function createTimeout(): Promise<number> {
   const workerInstance: IWorker = new JobWorker();
 
   // get always last updated config value
-  const timeout: number = workerInstance.timeout || this.config.get('timeout');
+  const timeout: number = this.config.get('timeout');
 
   // create a array with handler parameters for shorten line numbers
   const params = [task, JobWorker, workerInstance];
@@ -385,7 +386,7 @@ export async function createTimeout(): Promise<number> {
 
 /**
  * Set the status to false of queue
- * Context: Queue
+ * Context: Channel
  *
  * @return {void}
  *
@@ -397,7 +398,7 @@ export function statusOff(): void {
 
 /**
  * Checks whether a task is replicable or not
- * Context: Queue
+ * Context: Channel
  *
  * @param {ITask} task
  * @return {boolean}
@@ -411,7 +412,7 @@ export async function canMultiple(task: ITask): Promise<boolean> {
 
 /**
  * Job handler class register
- * Context: Queue
+ * Context: Channel
  *
  * @param {ITask} task
  * @param {IWorker} worker
