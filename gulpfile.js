@@ -8,6 +8,7 @@ const streamify = require('gulp-streamify');
 const gutil = require('gulp-util');
 const eslint = require('gulp-eslint');
 const flow = require('gulp-flowtype');
+const prettier = require('gulp-prettier');
 const execSync = require('child_process').execSync;
 const flowRemoveTypes = require('flow-remove-types');
 
@@ -56,7 +57,14 @@ gulp.task('lint', () =>
     // To have the process exit with an error code (1) on
     // lint error, return the stream and pipe to failAfterError last.
     .pipe(eslint.failAfterError())
-  );
+);
+
+
+gulp.task('prettier', () => {
+  return gulp.src('./lib/**/*.js')
+    .pipe(prettier({ singleQuote: true }))
+    .pipe(gulp.dest('./lib'));
+});
 
 gulp.task('stripTypes', () => {
   const files = [
@@ -84,8 +92,9 @@ gulp.task('stripTypes', () => {
     execSync(...a);
   }
 });
+
 gulp.task('watch', () => {
-  gulp.watch('src/**/*.js', ['lint', 'es6', 'stripTypes']);
+  gulp.watch('src/**/*.js', ['lint', 'es6', 'stripTypes', 'prettier']);
 });
 
 gulp.task('default', ['lint', 'watch']);
