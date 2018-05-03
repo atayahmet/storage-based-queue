@@ -72,7 +72,8 @@
     "test": "karma start --browsers ChromeHeadless",
     "test:watch": "karma start --no-single-run --auto-watch",
     "coveralls": "cat ./coverage/html/headlesschrome/lcov.info | ./node_modules/.bin/coveralls",
-    "flow": "flow"
+    "flow": "flow",
+    "gulp:process": "node_modules/.bin/gulp prettier-bundle minify-bundle prettier"
   },
   "nyc": {
     "exclude": [
