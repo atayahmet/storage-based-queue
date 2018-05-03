@@ -4,5 +4,6 @@ coverage/
 .vscode/
 project.todo
 example.js
+index.html
 package-lock.json
 docs/
