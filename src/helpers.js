@@ -294,7 +294,7 @@ export async function successJobHandler(task: ITask, worker: IWorker): Promise<F
     dispatchEvents.call(self, task, 'after');
 
     // show console
-    logProxy.call(this, workerDoneLog, result);
+    logProxy.call(self, workerDoneLog, result);
 
     // try next queue job
     await self.next();
