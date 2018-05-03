@@ -14,24 +14,6 @@ You can run jobs over the channels as asynchronous that saved regularly.
 
 This library just a solution method for some use cases. Today, there are different technologies that fulfill the similar process.
 
-## How it works?
-
-Data regularly store (local storage for now) added to queue pool. Storing queue data is also inspired by the [JSON-RPC](http://www.jsonrpc.org/) method. When the queue is started, the queues start to be processed sequentially in the specified range according to the sorting algorithm.
-
-If any exceptions occur while the worker classes are processing, the current queue is reprocessed to try again. The task is frozen when it reaches the defined retry value.
-
-### Channels
-You need to create at least one channel. One channel can be created as many channels as desired. Channels run independently of each other. The areas where each channel will store tasks are also separate. The area where tasks are stored is named with the channel name and prefix.
-
-The important thing to remember here is that each newly created channel is actually a new copy of the Queue class. So a new instance is formed, but the dependencies of the channels are still alive as singletons.
-
-Example; You created two channels. Their names are channelA and channelB. If you make a setting in the channelA instance, this change will also be reflected in channelB and all other channels.
-
-
-### Workers
-Worker classes should return `boolean` `(true / false)` data with the Promise class as the return value. The return `Promise / resolve (true)` must be true if a task is successfully **completed** and you want to pass the next task. A possible exception should also be **tried** again: `Promise / resolve (false)`. If we do not want the task to be retried and we want to pass the next task: `Promise / reject ('any value')`
-
-
 ## Installation
 
 ```sh
