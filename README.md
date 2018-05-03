@@ -6,7 +6,7 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/atayahmet/storage-based-queue/badge.svg)](https://snyk.io/test/github/atayahmet/storage-based-queue)
 
 
-# Storage Based Queue on Browser
+# Persistent Queue For Browsers
 
 Storage based queue processing mechanism. Today, many backend technology is a simple derivative of the queuing systems used in the browser environment.
 
