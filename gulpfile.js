@@ -71,6 +71,7 @@ gulp.task('stripTypes', () => {
     'queue.js',
     'storage-capsule.js',
     'utils.js',
+    'console.js',
     'helpers.js'
   ];
 

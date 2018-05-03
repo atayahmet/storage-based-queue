@@ -17,6 +17,13 @@ import {
   stopQueue,
   getTasksWithoutFreezed,
 } from './helpers';
+import {
+  taskAddedLog,
+  nextTaskLog,
+  queueStoppingLog,
+  queueStartLog,
+  eventCreatedLog,
+} from './console';
 
 /* eslint no-underscore-dangle: [2, { "allow": ["_id"] }] */
 
@@ -72,7 +79,7 @@ export default class Channel {
     }
 
     // pass activity to the log service.
-    logProxy.call(this, 'queue.created', task.handler);
+    logProxy.call(this, taskAddedLog, task);
 
     return id;
   }
@@ -91,7 +98,7 @@ export default class Channel {
     }
 
     // Generate a log message
-    logProxy.call(this, 'queue.next', 'next');
+    logProxy.call(this, nextTaskLog, 'next');
 
     // start queue again
     await this.start();
@@ -113,7 +120,7 @@ export default class Channel {
     // Register tasks, if not registered
     registerWorkers.call(this);
 
-    logProxy.call(this, 'queue.starting', 'start');
+    logProxy.call(this, queueStartLog, 'start');
 
     // Create a timeout for start queue
     this.running = (await createTimeout.call(this)) > 0;
@@ -129,7 +136,7 @@ export default class Channel {
    * @api public
    */
   stop(): void {
-    logProxy.call(this, 'queue.stopping', 'stop');
+    logProxy.call(this, queueStoppingLog, 'stop');
     this.stopped = true;
   }
 
@@ -245,6 +252,6 @@ export default class Channel {
    */
   on(key: string, cb: Function): void {
     this.event.on(...[key, cb]);
-    logProxy.call(this, 'event.created', key);
+    logProxy.call(this, eventCreatedLog, key);
   }
 }

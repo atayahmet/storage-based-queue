@@ -12,3 +12,4 @@ Release Notes:
     ☐ ESLint integrated.
     ☐ Network activities check removed. This control left to developer because there is different development environments (Browser, React Native etc.).
     ☐ Added new `merge()` method to container class for some configuration objects to be merge.
+    ☐ debug npm package removed from dependencies.

@@ -1,11 +1,7 @@
 /* @flow */
-import obj from 'object-path';
-import debug from 'debug';
 import type ITask from '../interfaces/task';
-import logEvents from './enum/log.events';
 
 /* eslint comma-dangle: ["error", "never"] */
-/* global localStorage:true */
 
 /**
  * Check property in object
@@ -102,30 +98,4 @@ export function fifo(a: ITask, b: ITask): any {
  */
 export function lifo(a: ITask, b: ITask): any {
   return b.createdAt - a.createdAt;
-}
-
-/**
- * Log helper
- *
- * @param  {String} key
- * @param  {String} data
- * @param  {Boolean} condition
- * @return {void}
- *
- * @api public
- */
-export function log(key: string, data: string = ''): void {
-  if (this !== true) {
-    localStorage.removeItem('debug');
-    return;
-  }
-
-  // debug mode on always
-  localStorage.setItem('debug', 'worker:*');
-
-  // get new debug function instance
-  const logger = debug(`worker:${data} ->`);
-
-  // the output push to console
-  logger(obj.get(logEvents, key));
 }

@@ -1,10 +1,19 @@
 /* @flow */
-import Queue from './queue';
-import Channel from './channel';
-import { excludeSpecificTasks, log, hasMethod, isFunction } from './utils';
-import StorageCapsule from './storage-capsule';
 import type ITask from '../interfaces/task';
 import type IWorker from '../interfaces/worker';
+import Queue from './queue';
+import Channel from './channel';
+import StorageCapsule from './storage-capsule';
+import { excludeSpecificTasks, hasMethod, isFunction } from './utils';
+import {
+  eventFiredLog,
+  queueStoppedLog,
+  workerRunninLog,
+  queueEmptyLog,
+  notFoundLog,
+  workerDoneLog,
+  workerFailedLog,
+} from './console';
 
 /* eslint no-underscore-dangle: [2, { "allow": ["_id"] }] */
 /* eslint no-param-reassign: "error" */
@@ -62,14 +71,10 @@ export async function getTasksWithoutFreezed(): Promise<ITask[]> {
  *
  * @api private
  */
-export function logProxy(...args: any): void {
-  log.call(
-    // debug mode status
-    (this: any).config.get('debug'),
-
-    // log arguments
-    ...args,
-  );
+export function logProxy(wrapperFunc: Function, ...args: any): void {
+  if ((this: any).config.get('debug') && typeof wrapperFunc === 'function') {
+    wrapperFunc(args);
+  }
 }
 
 /**
@@ -117,7 +122,7 @@ export function dispatchEvents(task: ITask, type: string): boolean | void {
 
   events.forEach((e) => {
     this.event.emit(e[0], task);
-    logProxy.call((this: any), `event.${e[1]}`, e[0]);
+    logProxy.call((this: any), eventFiredLog, ...e);
   });
 
   return true;
@@ -136,7 +141,7 @@ export function stopQueue(): void {
 
   clearTimeout(this.currentTimeout);
 
-  logProxy.call(this, 'queue.stopped', 'stop');
+  logProxy.call(this, queueStoppedLog, 'stop');
 }
 
 /**
@@ -154,6 +159,8 @@ export async function failedJobHandler(task: ITask): Promise<Function> {
     removeTask.call(this, task._id);
 
     this.event.emit('error', task);
+
+    logProxy.call(this, workerFailedLog);
 
     /* istanbul ignore next */
     await this.next();
@@ -286,6 +293,9 @@ export async function successJobHandler(task: ITask, worker: IWorker): Promise<F
     // dispacth custom after event
     dispatchEvents.call(self, task, 'after');
 
+    // show console
+    logProxy.call(this, workerDoneLog, result);
+
     // try next queue job
     await self.next();
   };
@@ -325,6 +335,8 @@ export /* istanbul ignore next */ function loopHandler(
     // preparing worker dependencies
     const dependencies = Object.values(deps || {});
 
+    logProxy.call(this, workerRunninLog, worker, task, Queue.workerDeps);
+
     // Task runner promise
     workerInstance.handle
       .call(workerInstance, task.args, ...dependencies)
@@ -337,7 +349,7 @@ export /* istanbul ignore next */ function loopHandler(
  * Timeout creator helper
  * Context: Channel
  *
- * @return {number}""
+ * @return {number}
  *
  * @api private
  */
@@ -350,13 +362,13 @@ export async function createTimeout(): Promise<number> {
   const task: ITask = (await db.call(this).fetch()).shift();
 
   if (task === undefined) {
-    logProxy.call(this, 'queue.empty', this.currentChannel);
+    logProxy.call(this, queueEmptyLog, this.name());
     stopQueue.call(this);
     return 1;
   }
 
   if (!this.container.has(task.handler)) {
-    logProxy.call(this, 'queue.not-found', task.handler);
+    logProxy.call(this, notFoundLog, task.handler);
     await (await failedJobHandler.call(this, task)).call(this);
     return 1;
   }

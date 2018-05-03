@@ -6,7 +6,6 @@
   "main": "lib/queue.js",
   "dependencies": {
     "babel-runtime": "^6.26.0",
-    "debug": "^3.1.0",
     "group-by": "0.0.1",
     "localforage": "^1.7.1",
     "object-path": "^0.11.4"
