@@ -284,7 +284,7 @@ export async function successJobHandler(task: ITask, worker: IWorker): Promise<F
       successProcess.call(self, task);
     } else {
       // go ahead to retry process
-      retryProcess.call(self, task, worker);
+      await retryProcess.call(self, task, worker);
     }
 
     // fire job after event
