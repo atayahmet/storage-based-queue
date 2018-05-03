@@ -29,15 +29,9 @@ gulp.task('es6', () => {
     .on('error', gutil.log)
     .bundle()
     .on('error', gutil.log)
+    .pipe(prettier({ singleQuote: true }))
     .pipe(source('dist/queue.js'))
     .pipe(gulp.dest(''));
-
-  // gulp
-  //   .src(["dist/queue.js"])
-  //   .on('error', (e) => { console.log(e) })
-  //   .pipe(streamify(uglify()))
-  //   .pipe(rename("queue.min.js"))
-  //   .pipe(gulp.dest("./dist"));
 });
 
 gulp.task('lint', () =>
@@ -64,6 +58,21 @@ gulp.task('prettier', () => {
   return gulp.src('./lib/**/*.js')
     .pipe(prettier({ singleQuote: true }))
     .pipe(gulp.dest('./lib'));
+});
+
+gulp.task('prettier-bundle', () => {
+  return gulp.src('./dist/queue.js')
+    .pipe(prettier({ singleQuote: true }))
+    .pipe(gulp.dest('./dist'));
+});
+
+gulp.task('minify-bundle', () => {
+  gulp
+    .src(["dist/queue.js"])
+    .on('error', (e) => { console.log(e) })
+    .pipe(streamify(uglify()))
+    .pipe(rename("queue.min.js"))
+    .pipe(gulp.dest("./dist"));
 });
 
 gulp.task('stripTypes', () => {
@@ -94,7 +103,7 @@ gulp.task('stripTypes', () => {
 });
 
 gulp.task('watch', () => {
-  gulp.watch('src/**/*.js', ['lint', 'es6', 'stripTypes', 'prettier']);
+  gulp.watch('src/**/*.js', ['lint', 'es6', 'stripTypes', 'prettier', 'prettier-bundle']);
 });
 
 gulp.task('default', ['lint', 'watch']);
