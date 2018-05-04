@@ -5,8 +5,9 @@
 [![devDependencies Status](https://david-dm.org/atayahmet/storage-based-queue/dev-status.svg)](https://david-dm.org/atayahmet/storage-based-queue?type=dev)
 [![Known Vulnerabilities](https://snyk.io/test/github/atayahmet/storage-based-queue/badge.svg)](https://snyk.io/test/github/atayahmet/storage-based-queue)
 
-
 # Persistent Queue For Browsers
+
+## Introduction
 
 Storage based queue processing mechanism. Today, many backend technology is a simple derivative of the queuing systems used in the browser environment.
 
@@ -23,8 +24,63 @@ $ npm install storage-based-queue --save
 **import:**
 
 ```javascript
-import Queue from 'storage-based-queue';
+import Queue from "storage-based-queue";
 ```
+
+## Basic Usage
+
+**Worker class:**
+
+```javascript
+class SendMessageWorker {
+  handle(message) {
+    retry = 5;
+    return new Promise((resolve, reject) => {
+      const result = someMessageSenderFunc(message);
+      if (result) {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
+  }
+}
+```
+
+**Register worker:**
+
+```javascript
+Queue.workers({ SendMessageWorker });
+```
+
+**Create channel:**
+
+```javascript
+const queue = new Queue();
+const channel = queue.create("send-message");
+```
+
+**Add task to channel:**
+
+```javascript
+channel
+  .add({
+    label: "Send message",
+    handler: "SendMessageWorker",
+    args: "Hello world!",
+  })
+  .then(result => {
+    // do something...
+  });
+```
+
+**Start queue:**
+
+```javascript
+channel.start();
+```
+
+That's it!
 
 ## Documentaion
 
@@ -37,4 +93,5 @@ $ npm test
 ```
 
 ## License
+
 MIT license
