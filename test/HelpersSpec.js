@@ -224,16 +224,6 @@ describe('Helper functions tests', () => {
     expect(await canMultiple.call(newChannel, scopedTask)).toBeFalsy();
   });
 
-  it('register workers', () => {
-    Queue.isRegistered = true;
-    Queue.queueWorkers = null;
-    const newQueue = new Queue();
-    const newChannel = newQueue.create('helpers-channel-g');
-    expect(registerWorkers.call(newChannel)).toBeFalsy();
-    Queue.isRegistered = false;
-    expect(registerWorkers.call(newChannel)).toBeTruthy();
-  });
-
   it('should be control the queue workableness, -> ()', (done) => {
     spyOn(channelA, 'forceStop').call(queue, true);
     expect(channelA.forceStop).toHaveBeenCalled();

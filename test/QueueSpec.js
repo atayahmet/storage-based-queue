@@ -29,13 +29,6 @@ describe('Queue class tests', () => {
     queue.setLimit(-1);
   });
 
-  it('should be register queue worker', () => {
-    const SendMessage = SendEmail;
-    Queue.workers({ SendEmail, SendMessage });
-    expect(Object.keys(Queue.queueWorkers).length).toBeGreaterThan(1);
-    expect(() => Queue.workers('worker')).toThrow();
-  });
-
   it('should be create new channel, -> create()', () => {
     expect(queue.container.has('channel-create')).toBeFalsy();
     const channelA = queue.create('channel-create');
