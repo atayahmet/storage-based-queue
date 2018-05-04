@@ -5,7 +5,7 @@
 [![devDependencies Status](https://david-dm.org/atayahmet/storage-based-queue/dev-status.svg)](https://david-dm.org/atayahmet/storage-based-queue?type=dev)
 [![Known Vulnerabilities](https://snyk.io/test/github/atayahmet/storage-based-queue/badge.svg)](https://snyk.io/test/github/atayahmet/storage-based-queue)
 
-# Persistent Queue For Browsers
+# Persistent Queue For The Browsers
 
 ## Introduction
 
