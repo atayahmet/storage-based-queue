@@ -1,6 +1,6 @@
 {
   "name": "storage-based-queue",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description":
     "Simple client queue mechanism. Create it and run asynchronously with worker class in browser.",
   "main": "lib/queue.js",
