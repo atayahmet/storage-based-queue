@@ -10,7 +10,6 @@ import {
   canMultiple,
   saveTask,
   logProxy,
-  registerWorkers,
   createTimeout,
   statusOff,
   stopQueue,
@@ -116,7 +115,7 @@ export default class Channel {
     this.stopped = false;
 
     // Register tasks, if not registered
-    registerWorkers.call(this);
+    // registerWorkers.call(this);
 
     logProxy.call(this, queueStartLog, 'start');
 

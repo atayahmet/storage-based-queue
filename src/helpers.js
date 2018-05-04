@@ -335,7 +335,16 @@ export /* istanbul ignore next */ function loopHandler(
     // preparing worker dependencies
     const dependencies = Object.values(deps || {});
 
-    logProxy.call(this, workerRunninLog, worker, workerInstance, task, Queue.workerDeps);
+    // show console
+    logProxy.call(
+      this,
+      workerRunninLog,
+      worker,
+      workerInstance,
+      task,
+      self.name(),
+      Queue.workerDeps,
+    );
 
     // Task runner promise
     workerInstance.handle
@@ -367,14 +376,14 @@ export async function createTimeout(): Promise<number> {
     return 1;
   }
 
-  if (!Queue.queueWorkers[task.handler]) {
+  if (!Queue.worker.has(task.handler)) {
     logProxy.call(this, notFoundLog, task.handler);
     await (await failedJobHandler.call(this, task)).call(this);
     return 1;
   }
 
   // Get worker with handler name
-  const JobWorker: Function = Queue.queueWorkers[task.handler];
+  const JobWorker: Function = Queue.worker.get(task.handler);
 
   // Create a worker instance
   const workerInstance: IWorker = new JobWorker();
@@ -420,26 +429,4 @@ export function statusOff(): void {
 export async function canMultiple(task: ITask): Promise<boolean> {
   if (typeof task !== 'object' || task.unique !== true) return true;
   return (await this.hasByTag(task.tag)) === false;
-}
-
-/**
- * Job handler class register
- * Context: Channel
- *
- * @param {ITask} task
- * @param {IWorker} worker
- * @return {void}
- *
- * @api private
- */
-export function registerWorkers(): boolean {
-  if (Queue.isRegistered) return false;
-
-  const workers = Queue.queueWorkers || {};
-
-  this.container.merge(workers);
-
-  Queue.isRegistered = true;
-
-  return true;
 }

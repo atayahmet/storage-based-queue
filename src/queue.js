@@ -11,9 +11,8 @@ export default function Queue(config: IConfig) {
 Queue.FIFO = 'fifo';
 Queue.LIFO = 'lifo';
 Queue.drivers = {};
-Queue.queueWorkers = {};
 Queue.workerDeps = {};
-
+Queue.worker = new Container();
 Queue.prototype.container = new Container();
 
 /**
@@ -122,8 +121,8 @@ Queue.workers = function workers(workersObj: { [prop: string]: any } = {}): void
   if (!(workersObj instanceof Object)) {
     throw new Error('The parameters should be object.');
   }
-  Queue.isRegistered = false;
-  Queue.queueWorkers = workersObj;
+
+  Queue.worker.merge(workersObj);
 };
 
 /**
