@@ -20,3 +20,7 @@
 * Container class removed from channel class and the workers were taken directly from the Queue class.
 * Emojis replaced with ascii characters in console.
 * Console outputs improved.
+
+## Changes for v1.0.2:
+
+* Removed old tests
