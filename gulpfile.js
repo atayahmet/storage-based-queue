@@ -29,7 +29,6 @@ gulp.task('es6', () => {
     .on('error', gutil.log)
     .bundle()
     .on('error', gutil.log)
-    .pipe(prettier({ singleQuote: true }))
     .pipe(source('dist/queue.js'))
     .pipe(gulp.dest(''));
 });
@@ -81,6 +80,7 @@ gulp.task('stripTypes', () => {
     'adapters/inmemory.js',
     'enum/log.events.js',
     'enum/config.data.js',
+    'channel.js',
     'config.js',
     'container.js',
     'event.js',
