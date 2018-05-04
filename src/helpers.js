@@ -294,7 +294,7 @@ export async function successJobHandler(task: ITask, worker: IWorker): Promise<F
     dispatchEvents.call(self, task, 'after');
 
     // show console
-    logProxy.call(self, workerDoneLog, result);
+    logProxy.call(self, workerDoneLog, result, task, worker);
 
     // try next queue job
     await self.next();
@@ -335,7 +335,7 @@ export /* istanbul ignore next */ function loopHandler(
     // preparing worker dependencies
     const dependencies = Object.values(deps || {});
 
-    logProxy.call(this, workerRunninLog, worker, task, Queue.workerDeps);
+    logProxy.call(this, workerRunninLog, worker, workerInstance, task, Queue.workerDeps);
 
     // Task runner promise
     workerInstance.handle
@@ -367,14 +367,14 @@ export async function createTimeout(): Promise<number> {
     return 1;
   }
 
-  if (!this.container.has(task.handler)) {
+  if (!Queue.queueWorkers[task.handler]) {
     logProxy.call(this, notFoundLog, task.handler);
     await (await failedJobHandler.call(this, task)).call(this);
     return 1;
   }
 
   // Get worker with handler name
-  const JobWorker: Function = this.container.get(task.handler);
+  const JobWorker: Function = Queue.queueWorkers[task.handler];
 
   // Create a worker instance
   const workerInstance: IWorker = new JobWorker();

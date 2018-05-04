@@ -2,7 +2,6 @@
 import type ITask from './../interfaces/task';
 import type IConfig from '../interfaces/config';
 import Event from './event';
-import Container from './container';
 import StorageCapsule from './storage-capsule';
 import Queue from './queue';
 import { utilClearByTag } from './utils';
@@ -36,7 +35,6 @@ export default class Channel {
   storage: StorageCapsule;
   config: IConfig;
   event = new Event();
-  container = new Container();
 
   constructor(name: string, config: IConfig) {
     this.config = config;
