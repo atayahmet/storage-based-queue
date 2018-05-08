@@ -1,7 +1,7 @@
 // @flow
-import type { IStorage } from '../../interfaces/storage';
-import type { IConfig } from '../../interfaces/config';
-import type ITask from '../../interfaces/task';
+import type { IStorage } from '../interfaces/storage';
+import type { IConfig } from '../interfaces/config';
+import type ITask from '../interfaces/task';
 
 export default class InMemoryAdapter implements IStorage {
   config: IConfig;

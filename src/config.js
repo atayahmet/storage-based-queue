@@ -1,5 +1,5 @@
 /* @flow */
-import type IConfig from '../interfaces/config';
+import type IConfig from './interfaces/config';
 import configData from './enum/config.data';
 
 export default class Config {

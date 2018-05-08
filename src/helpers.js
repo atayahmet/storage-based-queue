@@ -1,6 +1,6 @@
 /* @flow */
-import type ITask from '../interfaces/task';
-import type IWorker from '../interfaces/worker';
+import type ITask from './interfaces/task';
+import type IWorker from './interfaces/worker';
 import Queue from './queue';
 import Channel from './channel';
 import StorageCapsule from './storage-capsule';

@@ -1,5 +1,5 @@
 /* @flow */
-import type IConfig from '../interfaces/config';
+import type IConfig from './interfaces/config';
 import Channel from './channel';
 import Container from './container';
 import Config from './config';

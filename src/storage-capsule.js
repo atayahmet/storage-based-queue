@@ -1,8 +1,8 @@
 /* @flow */
 import groupBy from 'group-by';
-import type IConfig from '../interfaces/config';
-import type { IStorage } from '../interfaces/storage';
-import type ITask from '../interfaces/task';
+import type IConfig from './interfaces/config';
+import type { IStorage } from './interfaces/storage';
+import type ITask from './interfaces/task';
 import { LocalForageAdapter, InMemoryAdapter } from './adapters';
 import { excludeSpecificTasks, lifo, fifo } from './utils';
 

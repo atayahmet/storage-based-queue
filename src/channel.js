@@ -1,6 +1,6 @@
 // @flow
-import type ITask from './../interfaces/task';
-import type IConfig from '../interfaces/config';
+import type ITask from './interfaces/task';
+import type IConfig from './interfaces/config';
 import Event from './event';
 import StorageCapsule from './storage-capsule';
 import Queue from './queue';

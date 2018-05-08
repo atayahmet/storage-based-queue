@@ -1,5 +1,5 @@
 /* @flow */
-import type IContainer from '../interfaces/container';
+import type IContainer from './interfaces/container';
 
 export default class Container implements IContainer {
   store: { [property: string]: any } = {};

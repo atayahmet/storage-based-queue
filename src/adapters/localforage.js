@@ -1,8 +1,8 @@
 // @flow
 import localForage from 'localforage';
-import type { IStorage } from '../../interfaces/storage';
-import type { IConfig } from '../../interfaces/config';
-import type ITask from '../../interfaces/task';
+import type { IStorage } from '../interfaces/storage';
+import type { IConfig } from '../interfaces/config';
+import type ITask from '../interfaces/task';
 
 export default class LocalForageAdapter implements IStorage {
   config: IConfig;
