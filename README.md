@@ -7,7 +7,7 @@
 [![GitHub license](https://img.shields.io/github/license/atayahmet/storage-based-queue.svg)](https://github.com/atayahmet/storage-based-queue/blob/master/LICENSE)
 [![GitHub issues](https://img.shields.io/github/issues/atayahmet/storage-based-queue.svg)](https://github.com/atayahmet/storage-based-queue/issues)
 
-# Persistent Queue For The Browsers
+# Persistent Queue Workers For Only Browsers
 
 ## Introduction
 
@@ -16,6 +16,13 @@ Storage based queue processing mechanism. Today, many backend technology is a si
 You can run jobs over the channels as asynchronous that saved regularly.
 
 This library just a solution method for some use cases. Today, there are different technologies that fulfill the similar process.
+
+**Reminders:**
+
+* Designed for only browser environments.
+* Built-in error handling.
+* ES6/ES7 features.
+* Full control over the workers.
 
 ## How it works?
 
@@ -33,7 +40,9 @@ Example; You created two channels. Their names are channelA and channelB. If you
 
 ### Workers
 
-Worker classes should return `boolean` `(true / false)` data with the Promise class as the return value. The return `Promise / resolve (true)` must be true if a task is successfully **completed** and you want to pass the next task. A possible exception should also be **tried** again: `Promise / resolve (false)`. If we do not want the task to be retried and we want to pass the next task: `Promise / reject ('any value')`
+You can create countless worker. Worker classes should return `boolean` `(true / false)` data with the Promise class as the return value. The return `Promise / resolve (true)` must be true if a task is successfully **completed** and you want to pass the next task. A possible exception should also be **tried** again: `Promise / resolve (false)`. If we do not want the task to be retried and we want to pass the next task: `Promise / reject ('any value')`
+
+> **Note:** Queue Workers is not built-in Web Worker. It is custom worker classes which is working in main context.
 
 ## Installation
 
@@ -47,19 +56,38 @@ $ npm install storage-based-queue --save
 import Queue from "storage-based-queue";
 ```
 
+**Script Tag:**
+
+```javascript
+<script src="https://unpkg.com/storage-based-queue@1.1.1/dist/queue.min.js" />
+```
+
 ## Basic Usage
 
 **Worker class:**
 
+İşlemlerinze ait tüm logic worker sınıflarında barındırılması gerekmektedir.
+
 ```javascript
-class SendMessageWorker {
+class MessageSenderWorker {
   handle(message) {
+    // If return value is false, this task will retry until retry value 5.
+    // If retry value is 5 in worker, current task will be as failed and freezed in the task pool.
     retry = 5;
+
+    // Should return true or false value (boolean) that end of the all process
+    // If process rejected, current task will be removed from task pool in worker.
     return new Promise((resolve, reject) => {
+      // A function is called in this example.
+      // The async operation is started by resolving the promise class with the return value.
       const result = someMessageSenderFunc(message);
       if (result) {
+        // Task will be completed successfully
         resolve(true);
       } else {
+        // Task will be failed.
+        // If retry value i not equal to 5,
+        // If the retry value was not 5, it is being sent back to the pool to try again.
         resolve(false);
       }
     });
@@ -70,13 +98,18 @@ class SendMessageWorker {
 **Register worker:**
 
 ```javascript
-Queue.workers({ SendMessageWorker });
+Queue.workers({ MessageSenderWorker });
 ```
 
 **Create channel:**
 
 ```javascript
+// create new queue instance with default config
 const queue = new Queue();
+```
+
+```javascript
+// create a new channel
 const channel = queue.create("send-message");
 ```
 
@@ -111,6 +144,27 @@ That's it!
 ```ssh
 $ npm test
 ```
+
+## Browser Support
+
+| Name    | Version |
+| ------- | :------ |
+| Chrome  | 32 +    |
+| Firefox | 29 +    |
+| Safari  | 8 +     |
+| Opera   | 19 +    |
+| IE      | 11      |
+| Edge    | all     |
+
+> **Note:** Listed above list by pormise support.
+
+You can testing all others browser version at <a href="https://www.browserstack.com" target="_blank">BrowserStack</a>
+
+<a href="https://www.browserstack.com" target="_blank"><img alt="BrowserStack" src="https://raw.github.com/josdejong/mathjs/master/misc/browserstack.png"></a>
+
+## Change log
+
+[See CHANGELOG.md](https://github.com/atayahmet/storage-based-queue/blob/master/CHANGES.md)
 
 ## License
 
