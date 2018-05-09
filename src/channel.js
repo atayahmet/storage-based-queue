@@ -150,6 +150,17 @@ export default class Channel {
   }
 
   /**
+   * Check if the channel working
+   *
+   * @return {Boolean}
+   *
+   * @api public
+   */
+  status(): boolean {
+    return this.running;
+  }
+
+  /**
    * Check whether there is any task
    *
    * @return {Booelan}
