@@ -27,7 +27,8 @@
 
 ## Changes for v1.1.1:
 
-* Some unused declarations has been deleted (80e26ee3)
-* Flowtype interfaces folder moved to src folder (e1630c835)
+* Some unused declarations has been deleted [(#80e26ee)](https://github.com/atayahmet/storage-based-queue/commit/80e26ee)
+* Flowtype interfaces folder moved to src folder. [(#e1630c8)](https://github.com/atayahmet/storage-based-queue/commit/e1630c8)
 * InMemory adapter default storage was made.
-* Removed LocalForage library from dependencies. Just supported the `localstorage` and `inmemory` storage.
+* Removed LocalForage library from dependencies. Just supported the `localstorage` and `inmemory` storage. [(#5694a6e)](https://github.com/atayahmet/storage-based-queue/commit/5694a6e)
+* Status method added to channel class for check if channel working. [(#38f4e92)](https://github.com/atayahmet/storage-based-queue/commit/38f4e92)
