@@ -24,3 +24,10 @@
 ## Changes for v1.0.2:
 
 * Removed old tests
+
+## Changes for v1.1.1:
+
+* Some unused declarations has been deleted (80e26ee3)
+* Flowtype interfaces folder moved to src folder (e1630c835)
+* InMemory adapter default storage was made.
+* Removed LocalForage library from dependencies. Just supported the `localstorage` and `inmemory` storage.
