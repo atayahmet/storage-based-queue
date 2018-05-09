@@ -1,8 +1,9 @@
 {
   "name": "storage-based-queue",
-  "version": "1.0.2",
+  "version": "1.1.1",
   "description":
     "Simple client queue mechanism. Create it and run asynchronously with worker class in browser.",
+  "homepage": "https://github.com/atayahmet/storage-based-queue",
   "main": "lib/queue.js",
   "dependencies": {
     "babel-runtime": "^6.26.0",
@@ -102,5 +103,5 @@
     "channel"
   ],
   "author": "Ahmet ATAY",
-  "license": "ISC"
+  "license": "MIT"
 }
