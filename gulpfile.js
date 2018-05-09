@@ -76,7 +76,7 @@ gulp.task('minify-bundle', () => {
 
 gulp.task('stripTypes', () => {
   const files = [
-    'adapters/localforage.js',
+    'adapters/localstorage.js',
     'adapters/inmemory.js',
     'enum/log.events.js',
     'enum/config.data.js',

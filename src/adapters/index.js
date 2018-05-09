@@ -1,2 +1,2 @@
-export LocalForageAdapter from './localforage';
 export InMemoryAdapter from './inmemory';
+export LocalStorageAdapter from './localstorage';
