@@ -32,3 +32,7 @@
 * InMemory adapter default storage was made.
 * Removed LocalForage library from dependencies. Just supported the `localstorage` and `inmemory` storage. [(#5694a6e)](https://github.com/atayahmet/storage-based-queue/commit/5694a6e)
 * Status method added to channel class for check if channel working. [(#38f4e92)](https://github.com/atayahmet/storage-based-queue/commit/38f4e92)
+
+## Changes for v1.2.0:
+
+* Added native browser worker support. (with polyfill) [(#bce43fa)](https://github.com/atayahmet/storage-based-queue/commit/bce43fa)
