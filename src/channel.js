@@ -114,9 +114,6 @@ export default class Channel {
     // Stop the queue for restart
     this.stopped = false;
 
-    // Register tasks, if not registered
-    // registerWorkers.call(this);
-
     logProxy.call(this, queueStartLog, 'start');
 
     // Create a timeout for start queue

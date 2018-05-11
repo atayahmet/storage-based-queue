@@ -15,6 +15,7 @@ import {
   workerFailedLog,
 } from './console';
 
+/* global Worker */
 /* eslint no-underscore-dangle: [2, { "allow": ["_id"] }] */
 /* eslint no-param-reassign: "error" */
 /* eslint use-isnan: "error" */
@@ -312,13 +313,13 @@ export async function successJobHandler(task: ITask, worker: IWorker): Promise<F
  *
  * @api private
  */
-
 export /* istanbul ignore next */ function loopHandler(
   task: ITask,
-  worker: Function,
+  worker: Function | Object,
   workerInstance: IWorker,
 ): Function {
   return async function childLoopHandler(): Promise<void> {
+    let workerPromise: Promise<boolean>;
     const self: Channel = this;
 
     // lock the current task for prevent race condition
@@ -330,7 +331,8 @@ export /* istanbul ignore next */ function loopHandler(
     // dispacth custom before event
     dispatchEvents.call(this, task, 'before');
 
-    const deps = Queue.workerDeps[worker.name];
+    // if has any dependency in dependencies, get it
+    const deps = Queue.workerDeps[task.handler];
 
     // preparing worker dependencies
     const dependencies = Object.values(deps || {});
@@ -346,10 +348,32 @@ export /* istanbul ignore next */ function loopHandler(
       Queue.workerDeps,
     );
 
-    // Task runner promise
-    workerInstance.handle
-      .call(workerInstance, task.args, ...dependencies)
+    // Check worker instance and route the process via instance
+    if (workerInstance instanceof Worker) {
+      // start the native worker by passing task parameters and dependencies.
+      // Note: Native worker parameters can not be class or function.
+      workerInstance.postMessage({ args: task.args, dependencies });
+
+      // Wrap the worker with promise class.
+      workerPromise = new Promise((resolve) => {
+        // Set function to worker onmessage event for handle the repsonse of worker.
+        workerInstance.onmessage = (response) => {
+          resolve(worker.handler(response));
+
+          // Terminate browser worker.
+          workerInstance.terminate();
+        };
+      });
+    } else {
+      // This is custom worker class.
+      // Call the handle function in worker and get promise instance.
+      workerPromise = workerInstance.handle.call(workerInstance, task.args, ...dependencies);
+    }
+
+    workerPromise
+      // Handle worker return process.
       .then((await successJobHandler.call(self, task, workerInstance)).bind(self))
+      // Handle errors in worker while it was running.
       .catch((await failedJobHandler.call(self, task)).bind(self));
   };
 }
@@ -383,10 +407,11 @@ export async function createTimeout(): Promise<number> {
   }
 
   // Get worker with handler name
-  const JobWorker: Function = Queue.worker.get(task.handler);
+  const JobWorker: Function | Object = Queue.worker.get(task.handler);
 
   // Create a worker instance
-  const workerInstance: IWorker = new JobWorker();
+  const workerInstance: IWorker | Worker =
+    typeof JobWorker === 'object' ? new Worker(JobWorker.uri) : new JobWorker();
 
   // get always last updated config value
   const timeout: number = this.config.get('timeout');

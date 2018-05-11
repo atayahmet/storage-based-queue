@@ -7,7 +7,7 @@
 [![GitHub license](https://img.shields.io/github/license/atayahmet/storage-based-queue.svg)](https://github.com/atayahmet/storage-based-queue/blob/master/LICENSE)
 [![GitHub issues](https://img.shields.io/github/issues/atayahmet/storage-based-queue.svg)](https://github.com/atayahmet/storage-based-queue/issues)
 
-# Persistent Queue Workers For Only Browsers
+# Persistent Queue For Clients (Browsers, React Native)
 
 ## Introduction
 
@@ -23,6 +23,8 @@ This library just a solution method for some use cases. Today, there are differe
 * Built-in error handling.
 * ES6/ES7 features.
 * Full control over the workers.
+* React Native support.
+* Native browser worker. (with polyfill)
 
 ## How it works?
 
@@ -42,7 +44,9 @@ Example; You created two channels. Their names are channelA and channelB. If you
 
 You can create countless worker. Worker classes should return `boolean` `(true / false)` data with the Promise class as the return value. The return `Promise / resolve (true)` must be true if a task is successfully **completed** and you want to pass the next task. A possible exception should also be **tried** again: `Promise / resolve (false)`. If we do not want the task to be retried and we want to pass the next task: `Promise / reject ('any value')`
 
-> **Note:** Queue Workers is not built-in Web Worker. It is custom worker classes which is working in main context.
+Also you can use native [browser worker](https://developer.mozilla.org/en-US/docs/Web/API/Worker). If you are browser does not support Worker, Browser Worker polyfil will add a [pseudo-worker](https://github.com/nolanlawson/pseudo-worker) function to window object.
+
+Plase check the docs: [Workers](https://github.com/atayahmet/storage-based-queue/wiki/Workers)
 
 ## Installation
 
@@ -59,7 +63,7 @@ import Queue from "storage-based-queue";
 **Script Tag:**
 
 ```javascript
-<script src="https://unpkg.com/storage-based-queue@1.1.1/dist/queue.min.js" />
+<script src="https://unpkg.com/storage-based-queue@1.2.0/dist/queue.min.js" />
 ```
 
 ## Basic Usage

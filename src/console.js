@@ -69,7 +69,7 @@ export function workerRunninLog([
   channel: string,
   deps: { [string]: any[] },
 ]: any[]) {
-  console.groupCollapsed(`${worker.name} - ${task.label}`);
+  console.groupCollapsed(`${worker.name || task.handler} - ${task.label}`);
   log(`%cchannel: ${channel}`, 'color: blue;');
   log(`%clabel: ${task.label || ''}`, 'color: blue;');
   log(`%chandler: ${task.handler}`, 'color: blue;');

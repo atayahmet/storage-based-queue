@@ -1,7 +1,10 @@
+import 'pseudo-worker/polyfill';
 import Queue from './queue';
 
 /* global window:true */
 
-window.Queue = Queue;
+if (typeof window !== 'undefined') {
+  window.Queue = Queue;
+}
 
 export default Queue;
