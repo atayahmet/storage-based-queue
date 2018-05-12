@@ -7,7 +7,7 @@
 [![GitHub license](https://img.shields.io/github/license/atayahmet/storage-based-queue.svg)](https://github.com/atayahmet/storage-based-queue/blob/master/LICENSE)
 [![GitHub issues](https://img.shields.io/github/issues/atayahmet/storage-based-queue.svg)](https://github.com/atayahmet/storage-based-queue/issues)
 
-# Persistent Queue For Clients (Browsers, React Native)
+# Persistent Queue For Browsers
 
 ## Introduction
 
@@ -23,7 +23,7 @@ This library just a solution method for some use cases. Today, there are differe
 * Built-in error handling.
 * ES6/ES7 features.
 * Full control over the workers.
-* React Native support.
+* React Native support. (require few minor config)
 * Native browser worker. (with polyfill)
 
 ## How it works?
@@ -63,14 +63,12 @@ import Queue from "storage-based-queue";
 **Script Tag:**
 
 ```javascript
-<script src="https://unpkg.com/storage-based-queue@1.2.0/dist/queue.min.js" />
+<script src="https://unpkg.com/storage-based-queue@1.2.2/dist/queue.min.js" />
 ```
 
 ## Basic Usage
 
 **Worker class:**
-
-İşlemlerinze ait tüm logic worker sınıflarında barındırılması gerekmektedir.
 
 ```javascript
 class MessageSenderWorker {
