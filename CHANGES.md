@@ -36,3 +36,10 @@
 ## Changes for v1.2.0:
 
 * Added native browser worker support. (with polyfill) [(#bce43fa)](https://github.com/atayahmet/storage-based-queue/commit/bce43fa)
+
+## Changes for v1.2.1:
+
+* `"job not found"` message color changed [(#350c978)](https://github.com/atayahmet/storage-based-queue/commit/350c978)
+* index.js file added to adapters folder [(#13f2efa)](https://github.com/atayahmet/storage-based-queue/commit/13f2efa)
+* .babelrc deleted for avoid "Unknown plugin "transform-runtime" error.
+* Main file path in package.json has been changed as `lib/index.js`.
