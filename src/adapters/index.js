@@ -1,2 +1,4 @@
-export InMemoryAdapter from './inmemory';
-export LocalStorageAdapter from './localstorage';
+import InMemoryAdapter from './inmemory';
+import LocalStorageAdapter from './localstorage';
+
+export { InMemoryAdapter, LocalStorageAdapter };
