@@ -2,6 +2,7 @@ node_modules/
 coverage/
 .DS_Store
 .vscode/
+.babelrc
 project.todo
 example.js
 index.html
