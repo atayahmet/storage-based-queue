@@ -58,7 +58,7 @@ export function eventFiredLog([key, name]: any[]) {
 export function notFoundLog([name]: any[]) {
   log(
     `%c${String.fromCharCode(215)} (${name}) -> ${obj.get(logEvents, 'queue.not-found')}`,
-    'color: #a0dc3c;font-weight: bold;',
+    'color: #b92e2e;font-weight: bold;',
   );
 }
 
