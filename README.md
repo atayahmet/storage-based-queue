@@ -19,16 +19,16 @@ This library just a solution method for some use cases. Today, there are differe
 
 **Reminders:**
 
-* Designed for only browser environments.
-* Built-in error handling.
-* ES6/ES7 features.
-* Full control over the workers.
-* React Native support. (require few minor config)
-* Native browser worker. (with polyfill)
+- Designed for only browser environments.
+- Built-in error handling.
+- ES6/ES7 features.
+- Full control over the workers.
+- React Native support. (require few minor config)
+- Native browser worker. (with polyfill)
 
 ## How it works?
 
-Data regularly store (localstorage, indexeddb, websql, inmemory or custom storage drivers) added to queue pool. Storing queue data is also inspired by the [JSON-RPC](http://www.jsonrpc.org/) method. When the queue is started, the queues start to be processed sequentially in the specified range according to the sorting algorithm.
+Data regularly store (localstorage, inmemory or custom storage drivers) added to queue pool. Storing queue data is also inspired by the [JSON-RPC](http://www.jsonrpc.org/) method. When the queue is started, the queues start to be processed sequentially in the specified range according to the sorting algorithm.
 
 If any exceptions occur while the worker classes are processing, the current queue is reprocessed to try again. The task is frozen when it reaches the defined retry value.
 
