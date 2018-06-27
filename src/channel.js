@@ -198,9 +198,9 @@ export default class Channel {
    *
    * @api public
    */
-  clear(): boolean {
+  async clear(): Promise<boolean> {
     if (!this.name()) return false;
-    this.storage.clear(this.name());
+    await this.storage.clear(this.name());
     return true;
   }
 
