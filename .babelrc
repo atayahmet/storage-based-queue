@@ -1,0 +1,23 @@
+{
+  "presets": ["flow", "stage-0"],
+  "plugins": [
+    "transform-es2015-parameters",
+    "transform-class-properties",
+    "transform-flow-strip-types",
+    [
+      "transform-runtime",
+      {
+        "helpers": false,
+        "polyfill": false,
+        "regenerator": true,
+        "moduleName": "babel-runtime"
+      }
+    ]
+  ],
+  "retainLines": true,
+  "env": {
+    "test": {
+      "plugins": ["istanbul"]
+    }
+  }
+}
