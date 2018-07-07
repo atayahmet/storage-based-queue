@@ -1,8 +1,7 @@
 {
   "name": "storage-based-queue",
-  "version": "1.2.4",
-  "description":
-    "Simple client queue mechanism. Create it and run asynchronously with worker class in browser.",
+  "version": "1.2.5",
+  "description": "Simple client queue mechanism. Create it and run asynchronously with worker class in browser.",
   "homepage": "https://github.com/atayahmet/storage-based-queue",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -64,7 +63,9 @@
       [
         "babelify",
         {
-          "presets": ["es2015"]
+          "presets": [
+            "es2015"
+          ]
         }
       ]
     ]

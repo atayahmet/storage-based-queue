@@ -140,6 +140,8 @@ export function dispatchEvents(task: ITask, type: string): boolean | void {
 export function stopQueue(): void {
   this.stop();
 
+  this.running = false;
+
   clearTimeout(this.currentTimeout);
 
   logProxy.call(this, queueStoppedLog, 'stop');

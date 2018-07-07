@@ -37,11 +37,21 @@ describe('Channel class tests', () => {
     expect(await channel.countByTag('tag:channel-forceStop')).toEqual(1);
   });
 
-  it('should return channel status, ->status()', async () => {
-    const channel = new Channel('channe-status', config);    
+  it('should return channel status, ->status()', async (done) => {
+    const channel = new Channel('channe-status', config);
     expect(channel.status()).toBeFalsy();
     expect(await channel.start()).toBeTruthy();
     expect(channel.status()).toBeTruthy();
+    channel.forceStop();
+    expect(channel.status()).toBeFalsy();
+
+    await channel.start();
+    channel.stop();
+    channel.next();
+    setTimeout(() => {
+      expect(channel.status()).toBeFalsy();
+      done();
+    }, defaultTimeout + 1);
   });
 
   it('should be add single unique task, -> add()', async () => {
