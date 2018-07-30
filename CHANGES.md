@@ -59,3 +59,8 @@
 ## Changes for v1.2.5:
 
 - Bug fix: status() method at channel class.
+
+## Changes for v1.2.6
+
+- `completed` event has been added to channels. It will run when all tasks finished in a channel.
+- "Event Created" log output improved.

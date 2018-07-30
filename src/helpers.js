@@ -398,14 +398,14 @@ export async function createTimeout(): Promise<number> {
 
   if (task === undefined) {
     logProxy.call(this, queueEmptyLog, this.name());
-    stopQueue.call(this);
-    return 1;
+    this.event.emit('completed', task);
+    return 0;
   }
 
   if (!Queue.worker.has(task.handler)) {
     logProxy.call(this, notFoundLog, task.handler);
     await (await failedJobHandler.call(this, task)).call(this);
-    return 1;
+    return 0;
   }
 
   // Get worker with handler name

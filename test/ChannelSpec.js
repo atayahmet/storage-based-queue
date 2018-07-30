@@ -40,7 +40,7 @@ describe('Channel class tests', () => {
   it('should return channel status, ->status()', async (done) => {
     const channel = new Channel('channe-status', config);
     expect(channel.status()).toBeFalsy();
-    expect(await channel.start()).toBeTruthy();
+    await channel.start();
     expect(channel.status()).toBeTruthy();
     channel.forceStop();
     expect(channel.status()).toBeFalsy();

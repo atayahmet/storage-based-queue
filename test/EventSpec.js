@@ -16,6 +16,7 @@ describe('Event manager tests', () => {
     event.on('test:retry', defaultCallback);
     event.on('test2:retry', defaultCallback);
     event.on('error', defaultCallback);
+    event.on('completed', defaultCallback);
     event.on('*', defaultCallback);
     event.on('test:*', defaultCallback);
     event.on('test2:*', defaultCallback);
@@ -56,6 +57,9 @@ describe('Event manager tests', () => {
     expect('error' in event.store).toBeTruthy();
     expect(event.has('error')).toBeTruthy();
 
+    expect('completed' in event.store).toBeTruthy();
+    expect(event.has('completed')).toBeTruthy();
+
     expect(event.has('test3:before')).toBeFalsy();
   });
 
@@ -66,6 +70,7 @@ describe('Event manager tests', () => {
     expect(event.store['*'].test.toString()).toContain('defaultCallback');
     expect(event.store.wildcard['*'].toString()).toContain('defaultCallback');
     expect(event.store.wildcard.error.toString()).toContain('defaultCallback');
+    expect(event.store.wildcard.completed.toString()).toContain('defaultCallback');
   });
 
   it('should did throw error if not function, -> on()', () => {
@@ -119,6 +124,13 @@ describe('Event manager tests', () => {
     event.on('error', testError);
     event.emit('error', exampleArgs);
     expect(testError).toHaveBeenCalledWith('error', exampleArgs);
+  });
+
+  it('should be emit the completed event, -> emit()', () => {
+    const testCompleted = jasmine.createSpy('testCompleted');
+    event.on('completed', testCompleted);
+    event.emit('completed', exampleArgs);
+    expect(testCompleted).toHaveBeenCalledWith('completed', exampleArgs);
   });
 
   it('should be emit the wildcard events, ->emit()', () => {

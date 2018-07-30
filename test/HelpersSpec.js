@@ -211,7 +211,7 @@ describe('Helper functions tests', () => {
   it('create a timeout for process a task, -> createTimeout()', async () => {
     const newQueue = new Queue();
     const newChannel = newQueue.create('helpers-channel-e');
-    expect(await createTimeout.call(newChannel)).toBeTruthy();
+    expect(await createTimeout.call(newChannel)).toBe(0);
   });
 
   it('check the attachability of the task with the same tag', async () => {

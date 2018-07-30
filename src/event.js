@@ -4,7 +4,7 @@
 export default class Event {
   store: { [prop: string]: any } = {};
   verifierPattern: string = /^[a-z0-9-_]+:before$|after$|retry$|\*$/;
-  wildcards: string[] = ['*', 'error'];
+  wildcards: string[] = ['*', 'error', 'completed'];
   emptyFunc: Function = () => {};
 
   constructor() {
@@ -13,6 +13,7 @@ export default class Event {
     this.store.retry = {};
     this.store.wildcard = {};
     this.store.error = this.emptyFunc;
+    this.store.completed = this.emptyFunc;
     this.store['*'] = this.emptyFunc;
   }
 

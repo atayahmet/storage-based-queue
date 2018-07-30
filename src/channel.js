@@ -11,7 +11,6 @@ import {
   saveTask,
   logProxy,
   createTimeout,
-  statusOff,
   stopQueue,
   getTasksWithoutFreezed,
 } from './helpers';
@@ -71,7 +70,7 @@ export default class Channel {
 
     const id = await saveTask.call(this, task);
 
-    if (id && this.stopped && this.running === true) {
+    if (id && this.running === true) {
       await this.start();
     }
 
@@ -90,7 +89,6 @@ export default class Channel {
    */
   async next(): Promise<void | boolean> {
     if (this.stopped) {
-      statusOff.call(this);
       return stopQueue.call(this);
     }
 
@@ -110,16 +108,14 @@ export default class Channel {
    *
    * @api public
    */
-  async start(): Promise<boolean> {
-    // Stop the queue for restart
+  async start(): Promise<void> {
     this.stopped = false;
+    this.running = true;
 
     logProxy.call(this, queueStartLog, 'start');
 
-    // Create a timeout for start queue
-    this.running = (await createTimeout.call(this)) > 0;
-
-    return this.running;
+    // Create a timeout for start the queue
+    await createTimeout.call(this);
   }
 
   /**
@@ -257,6 +253,6 @@ export default class Channel {
    */
   on(key: string, cb: Function): void {
     this.event.on(...[key, cb]);
-    logProxy.call(this, eventCreatedLog, key);
+    logProxy.call(this, eventCreatedLog, key, this.name());
   }
 }
