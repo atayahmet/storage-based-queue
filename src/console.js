@@ -47,8 +47,11 @@ export function queueEmptyLog([type]: any[]) {
   log(`%c${type} ${obj.get(logEvents, 'queue.empty')}`, 'color: #ff7f94;font-weight: bold;');
 }
 
-export function eventCreatedLog([key]: any[]) {
-  log(`%c(${key}) -> ${obj.get(logEvents, 'event.created')}`, 'color: #66cee3;font-weight: bold;');
+export function eventCreatedLog([key, name]: string[]) {
+  log(
+    `%c(${name}) -> ${key} ${obj.get(logEvents, 'event.created')}`,
+    'color: #66cee3;font-weight: bold;',
+  );
 }
 
 export function eventFiredLog([key, name]: any[]) {

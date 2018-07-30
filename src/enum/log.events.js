@@ -11,7 +11,7 @@ export default {
     online: 'Connected',
   },
   event: {
-    created: 'New event created',
+    created: 'event created',
     fired: 'Event fired.',
     'wildcard-fired': 'Wildcard event fired.',
   },
