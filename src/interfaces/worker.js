@@ -1,4 +1,6 @@
+// @flow
 export interface IWorker {
+  [key: string]: any;
   priority: number;
   retry: number;
   handle(args: any): any;

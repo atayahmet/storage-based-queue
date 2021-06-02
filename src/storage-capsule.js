@@ -1,8 +1,8 @@
 /* @flow */
 import groupBy from 'group-by';
-import type IConfig from './interfaces/config';
+import type { IConfig } from './interfaces/config';
 import type { IStorage } from './interfaces/storage';
-import type ITask from './interfaces/task';
+import type { ITask } from './interfaces/task';
 import { LocalStorageAdapter, InMemoryAdapter } from './adapters';
 import { excludeSpecificTasks, lifo, fifo } from './utils';
 
@@ -12,7 +12,9 @@ import { excludeSpecificTasks, lifo, fifo } from './utils';
 
 export default class StorageCapsule {
   config: IConfig;
+
   storage: IStorage;
+
   storageChannel: string;
 
   constructor(config: IConfig, storage: IStorage) {
@@ -20,7 +22,8 @@ export default class StorageCapsule {
     this.storage = this.initialize(storage);
   }
 
-  initialize(Storage: any) {
+  initialize(Storage: any): IStorage {
+    /* eslint no-else-return: off */
     if (typeof Storage === 'object') {
       return Storage;
     } else if (typeof Storage === 'function') {
@@ -55,7 +58,7 @@ export default class StorageCapsule {
     const all = (await this.all()).filter(excludeSpecificTasks);
     const tasks = groupBy(all, 'priority');
     return Object.keys(tasks)
-      .map(key => parseInt(key, 10))
+      .map((key) => parseInt(key, 10))
       .sort((a, b) => b - a)
       .reduce(this.reduceTasks(tasks), []);
   }
@@ -102,13 +105,13 @@ export default class StorageCapsule {
    */
   async update(id: string, update: { [property: string]: any }): Promise<boolean> {
     const data: any[] = await this.all();
-    const index: number = data.findIndex(t => t._id === id);
+    const index: number = data.findIndex((t) => t._id === id);
 
     // if index not found, return false
     if (index < 0) return false;
 
     // merge existing object with given update object
-    data[index] = Object.assign({}, data[index], update);
+    data[index] = { ...data[index], ...update };
 
     // save to the storage as string
     await this.storage.set(this.storageChannel, data);
@@ -126,13 +129,13 @@ export default class StorageCapsule {
    */
   async delete(id: string): Promise<boolean> {
     const data: any[] = await this.all();
-    const index: number = data.findIndex(d => d._id === id);
+    const index: number = data.findIndex((d) => d._id === id);
 
     if (index < 0) return false;
 
     delete data[index];
 
-    await this.storage.set(this.storageChannel, data.filter(d => d));
+    await this.storage.set(this.storageChannel, data.filter((d) => d));
 
     return true;
   }
@@ -169,7 +172,11 @@ export default class StorageCapsule {
    * @api public
    */
   prepareTask(task: ITask): ITask {
-    const newTask = { ...task };
+    /* eslint no-param-reassign: off */
+    const newTask: any = {};
+    Object.keys(task).forEach((key) => {
+      newTask[key] = task[key];
+    });
     newTask.createdAt = Date.now();
     newTask._id = this.generateId();
     return newTask;
@@ -183,7 +190,7 @@ export default class StorageCapsule {
    *
    * @api public
    */
-  reduceTasks(tasks: ITask[]) {
+  reduceTasks(tasks: ITask[]): Function {
     const reduceFunc = (result: ITask[], key: any): ITask[] => {
       if (this.config.get('principle') === 'lifo') {
         return result.concat(tasks[key].sort(lifo));

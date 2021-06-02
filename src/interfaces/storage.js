@@ -1,5 +1,5 @@
 // @flow
-import type ITask from './task';
+import type { ITask } from './task';
 
 export interface IStorage {
   get(name: string): Promise<ITask[]>;

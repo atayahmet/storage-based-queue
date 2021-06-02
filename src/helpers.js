@@ -1,6 +1,7 @@
 /* @flow */
-import type ITask from './interfaces/task';
-import type IWorker from './interfaces/worker';
+/* eslint import/no-cycle: "off" */
+import type { ITask } from './interfaces/task';
+import type { IWorker } from './interfaces/worker';
 import Queue from './queue';
 import Channel from './channel';
 import StorageCapsule from './storage-capsule';
@@ -318,7 +319,7 @@ export async function successJobHandler(task: ITask, worker: IWorker): Promise<F
 export /* istanbul ignore next */ function loopHandler(
   task: ITask,
   worker: Function | Object,
-  workerInstance: IWorker,
+  workerInstance: any,
 ): Function {
   return async function childLoopHandler(): Promise<void> {
     let workerPromise: Promise<boolean>;
@@ -388,7 +389,7 @@ export /* istanbul ignore next */ function loopHandler(
  *
  * @api private
  */
-export async function createTimeout(): Promise<number> {
+export async function createTimeout(): Promise<any> {
   // if running any job, stop it
   // the purpose here is to prevent cocurrent operation in same channel
   clearTimeout(this.currentTimeout);
@@ -412,8 +413,8 @@ export async function createTimeout(): Promise<number> {
   const JobWorker: Function | Object = Queue.worker.get(task.handler);
 
   // Create a worker instance
-  const workerInstance: IWorker | Worker =
-    typeof JobWorker === 'object' ? new Worker(JobWorker.uri) : new JobWorker();
+  const workerInstance: any |
+    Worker = typeof JobWorker === 'object' ? new Worker(JobWorker.uri) : new JobWorker();
 
   // get always last updated config value
   const timeout: number = this.config.get('timeout');

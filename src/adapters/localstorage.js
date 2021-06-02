@@ -1,12 +1,13 @@
 // @flow
 import type { IStorage } from '../interfaces/storage';
 import type { IConfig } from '../interfaces/config';
-import type ITask from '../interfaces/task';
+import type { ITask } from '../interfaces/task';
 
 /* global localStorage */
 
 export default class LocalStorageAdapter implements IStorage {
   config: IConfig;
+
   prefix: string;
 
   constructor(config: IConfig) {
@@ -74,7 +75,7 @@ export default class LocalStorageAdapter implements IStorage {
    *
    * @api public
    */
-  storageName(suffix: string) {
+  storageName(suffix: string): string {
     return suffix.startsWith(this.getPrefix()) ? suffix : `${this.getPrefix()}_${suffix}`;
   }
 
@@ -85,7 +86,7 @@ export default class LocalStorageAdapter implements IStorage {
    *
    * @api public
    */
-  getPrefix() {
+  getPrefix(): string {
     return this.config.get('prefix');
   }
 }

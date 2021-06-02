@@ -1,11 +1,13 @@
 // @flow
 import type { IStorage } from '../interfaces/storage';
 import type { IConfig } from '../interfaces/config';
-import type ITask from '../interfaces/task';
+import type { ITask } from '../interfaces/task';
 
 export default class InMemoryAdapter implements IStorage {
   config: IConfig;
+
   prefix: string;
+
   store: { [prop: string]: any } = {};
 
   constructor(config: IConfig) {
@@ -74,7 +76,7 @@ export default class InMemoryAdapter implements IStorage {
    *
    * @api public
    */
-  storageName(suffix: string) {
+  storageName(suffix: string): string {
     return suffix.startsWith(this.getPrefix()) ? suffix : `${this.getPrefix()}_${suffix}`;
   }
 
@@ -85,7 +87,7 @@ export default class InMemoryAdapter implements IStorage {
    *
    * @api public
    */
-  getPrefix() {
+  getPrefix(): string {
     return this.config.get('prefix');
   }
 
@@ -97,7 +99,7 @@ export default class InMemoryAdapter implements IStorage {
    *
    * @api private
    */
-  getCollection(name: string) {
+  getCollection(name: string): any {
     const has = Object.prototype.hasOwnProperty.call(this.store, name);
     if (!has) this.store[name] = [];
     return this.store[name];

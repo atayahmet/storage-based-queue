@@ -1,8 +1,16 @@
 /* @flow */
-import type IContainer from './interfaces/container';
+import type { IContainer } from './interfaces/container';
 
 export default class Container implements IContainer {
   store: { [property: string]: any } = {};
+
+  // freeze(id: string): void {
+  //   console.log(this, id);
+  // }
+
+  // add(value: any): void {
+  //   console.log(this, value);
+  // }
 
   /**
    * Check item in container
@@ -35,7 +43,7 @@ export default class Container implements IContainer {
    *
    * @api public
    */
-  all() {
+  all(): any {
     return this.store;
   }
 
@@ -61,7 +69,7 @@ export default class Container implements IContainer {
    * @api public
    */
   merge(data: { [property: string]: any } = {}): void {
-    this.store = Object.assign({}, this.store, data);
+    this.store = { ...this.store, ...data };
   }
 
   /**

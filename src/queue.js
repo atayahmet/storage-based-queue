@@ -1,113 +1,136 @@
 /* @flow */
-import type IConfig from './interfaces/config';
+/* eslint import/no-cycle: "off" */
+import type { IConfig } from './interfaces/config';
 import Channel from './channel';
 import Container from './container';
 import Config from './config';
 
-export default function Queue(config: IConfig) {
-  this.config = new Config(config);
+export default class Queue {
+  static FIFO: string = 'fifo';
+
+  static LIFO: string = 'lifo';
+
+  static drivers: Object = {};
+
+  static workerDeps: Object = {};
+
+  static container: Container;
+
+  static worker: Container;
+
+  static workers: ({[prop: string]: any }) => void;
+
+  static deps: ({[prop: string]: any }) => void;
+
+  static use: ({[prop: string]: any }) => void;
+
+  config: Config;
+
+  container: Container;
+
+  constructor(config: IConfig) {
+    this.config = new Config(config);
+    this.container = Queue.container;
+  }
+
+  /**
+   * Create a new channel
+   *
+   * @param  {String} task
+   * @return {Queue} channel
+   *
+   * @api public
+   */
+  create(channel: string): Queue {
+    if (!this.container.has(channel)) {
+      this.container.bind(channel, new Channel(channel, this.config));
+    }
+    return this.container.get(channel);
+  }
+
+  /**
+   * Get channel instance by channel name
+   *
+   * @param  {String} name
+   * @return {Queue}
+   *
+   * @api public
+   */
+  channel(name: string): Queue {
+    if (!this.container.has(name)) {
+      throw new Error(`"${name}" channel not found`);
+    }
+    return this.container.get(name);
+  }
+
+  /**
+   * Set config timeout value
+   *
+   * @param  {Number} val
+   * @return {Void}
+   *
+   * @api public
+   */
+  setTimeout(val: number): void {
+    this.config.set('timeout', val);
+  }
+
+  /**
+   * Set config limit value
+   *
+   * @param  {Number} val
+   * @return {Void}
+   *
+   * @api public
+   */
+  setLimit(val: number): void {
+    this.config.set('limit', val);
+  }
+
+  /**
+   * Set config prefix value
+   *
+   * @param  {String} val
+   * @return {Void}
+   *
+   * @api public
+   */
+  setPrefix(val: string): void {
+    this.config.set('prefix', val);
+  }
+
+  /**
+   * Set config priciple value
+   *
+   * @param  {String} val
+   * @return {Void}
+   *
+   * @api public
+   */
+  setPrinciple(val: string): void {
+    this.config.set('principle', val);
+  }
+
+  /**
+   * Set config debug value
+   *
+   * @param  {Boolean} val
+   * @return {Void}
+   *
+   * @api public
+   */
+  setDebug(val: boolean): void {
+    this.config.set('debug', val);
+  }
+
+  setStorage(val: string): void {
+    this.config.set('storage', val);
+  }
 }
 
-Queue.FIFO = 'fifo';
-Queue.LIFO = 'lifo';
-Queue.drivers = {};
-Queue.workerDeps = {};
 Queue.worker = new Container();
-Queue.prototype.container = new Container();
 
-/**
- * Create a new channel
- *
- * @param  {String} task
- * @return {Queue} channel
- *
- * @api public
- */
-Queue.prototype.create = function create(channel: string): Queue {
-  if (!this.container.has(channel)) {
-    this.container.bind(channel, new Channel(channel, this.config));
-  }
-  return this.container.get(channel);
-};
-
-/**
- * Get channel instance by channel name
- *
- * @param  {String} name
- * @return {Queue}
- *
- * @api public
- */
-Queue.prototype.channel = function channel(name: string): Queue {
-  if (!this.container.has(name)) {
-    throw new Error(`"${name}" channel not found`);
-  }
-  return this.container.get(name);
-};
-
-/**
- * Set config timeout value
- *
- * @param  {Number} val
- * @return {Void}
- *
- * @api public
- */
-Queue.prototype.setTimeout = function setTimeout(val: number): void {
-  this.config.set('timeout', val);
-};
-
-/**
- * Set config limit value
- *
- * @param  {Number} val
- * @return {Void}
- *
- * @api public
- */
-Queue.prototype.setLimit = function setLimit(val: number): void {
-  this.config.set('limit', val);
-};
-
-/**
- * Set config prefix value
- *
- * @param  {String} val
- * @return {Void}
- *
- * @api public
- */
-Queue.prototype.setPrefix = function setPrefix(val: string): void {
-  this.config.set('prefix', val);
-};
-
-/**
- * Set config priciple value
- *
- * @param  {String} val
- * @return {Void}
- *
- * @api public
- */
-Queue.prototype.setPrinciple = function setPrinciple(val: string): void {
-  this.config.set('principle', val);
-};
-
-/**
- * Set config debug value
- *
- * @param  {Boolean} val
- * @return {Void}
- *
- * @api public
- */
-Queue.prototype.setDebug = function setDebug(val: boolean): void {
-  this.config.set('debug', val);
-};
-
-Queue.prototype.setStorage = function setStorage(val: string): void {
-  this.config.set('storage', val);
-};
+Queue.container = new Container();
 
 /**
  * Register worker
@@ -149,5 +172,7 @@ Queue.deps = function deps(dependencies: { [prop: string]: any } = {}): void {
  * @api public
  */
 Queue.use = function use(driver: { [prop: string]: any } = {}): void {
-  Queue.drivers = { ...Queue.drivers, ...driver };
+  Object.keys(driver).forEach((name) => {
+    Queue.drivers[name] = driver[name];
+  });
 };

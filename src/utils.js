@@ -1,5 +1,5 @@
 /* @flow */
-import type ITask from './interfaces/task';
+import type { ITask } from './interfaces/task';
 
 /* eslint comma-dangle: ["error", "never"] */
 

@@ -1,10 +1,13 @@
 /* eslint class-methods-use-this: ["error", { "exceptMethods": ["getName", "getType"] }] */
 /* eslint-env es6 */
-
+// @flow
 export default class Event {
   store: { [prop: string]: any } = {};
-  verifierPattern: string = /^[a-z0-9-_]+:before$|after$|retry$|\*$/;
+
+  verifierPattern: RegExp = /^[a-z0-9-_]+:before$|after$|retry$|\*$/;
+
   wildcards: string[] = ['*', 'error', 'completed'];
+
   emptyFunc: Function = () => {};
 
   constructor() {
@@ -117,7 +120,8 @@ export default class Event {
    * @api public
    */
   getName(key: string): string {
-    return key.match(/(.*):.*/)[1];
+    const parsed = key.match(/(.*):.*/);
+    return parsed ? parsed[1] : '';
   }
 
   /**
@@ -129,7 +133,8 @@ export default class Event {
    * @api public
    */
   getType(key: string): string {
-    return key.match(/^[a-z0-9-_]+:(.*)/)[1];
+    const parsed = key.match(/^[a-z0-9-_]+:(.*)/);
+    return parsed ? parsed[1] : '';
   }
 
   /**

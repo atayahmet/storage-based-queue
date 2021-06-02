@@ -13,7 +13,7 @@ module.exports = function (karma) {
 
     browsers: ['ChromeHeadless'],
 
-    logLevel: 'LOG_DEBUG',
+    // logLevel: 'LOG_DEBUG',
 
     singleRun: true,
     autoWatch: false,
@@ -25,8 +25,8 @@ module.exports = function (karma) {
         [
           'babelify',
           {
-            presets: ['es2015'],
-            plugins: ['transform-es2015-parameters', 'transform-class-properties', 'istanbul'],
+            presets: ["@babel/preset-env", '@babel/preset-flow'],
+            plugins: ['istanbul'],
           },
         ],
         'brfs',

@@ -1,6 +1,7 @@
 // @flow
-import type ITask from './interfaces/task';
-import type IConfig from './interfaces/config';
+/* eslint import/no-cycle: "off" */
+import type { ITask } from './interfaces/task';
+import type { IConfig } from './interfaces/config';
 import Event from './event';
 import StorageCapsule from './storage-capsule';
 import Queue from './queue';
@@ -28,11 +29,16 @@ const channelName = Symbol('channel-name');
 
 export default class Channel {
   stopped: boolean = true;
+
   running: boolean = false;
+
   timeout: number;
+
   storage: StorageCapsule;
+
   config: IConfig;
-  event = new Event();
+
+  event: Event = new Event();
 
   constructor(name: string, config: IConfig) {
     this.config = config;
@@ -184,7 +190,7 @@ export default class Channel {
    * @api public
    */
   async countByTag(tag: string): Promise<number> {
-    return (await getTasksWithoutFreezed.call(this)).filter(t => t.tag === tag).length;
+    return (await getTasksWithoutFreezed.call(this)).filter((t) => t.tag === tag).length;
   }
 
   /**
@@ -227,7 +233,7 @@ export default class Channel {
    * @api public
    */
   async has(id: string): Promise<boolean> {
-    return (await getTasksWithoutFreezed.call(this)).findIndex(t => t._id === id) > -1;
+    return (await getTasksWithoutFreezed.call(this)).findIndex((t) => t._id === id) > -1;
   }
 
   /**
@@ -239,7 +245,7 @@ export default class Channel {
    * @api public
    */
   async hasByTag(tag: string): Promise<boolean> {
-    return (await getTasksWithoutFreezed.call(this)).findIndex(t => t.tag === tag) > -1;
+    return (await getTasksWithoutFreezed.call(this)).findIndex((t) => t.tag === tag) > -1;
   }
 
   /**

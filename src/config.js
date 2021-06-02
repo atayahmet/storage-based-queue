@@ -1,11 +1,22 @@
 /* @flow */
-import type IConfig from './interfaces/config';
+import type { IConfig } from './interfaces/config';
 import configData from './enum/config.data';
 
 export default class Config {
-  config: IConfig = configData;
+  config: any = {}
 
-  constructor(config: IConfig = {}) {
+  timeout: number;
+
+  storage: string;
+
+  principle: string;
+
+  prefix: string;
+
+  limit: number;
+
+  constructor(config: any = {}) {
+    this.merge(configData);
     this.merge(config);
   }
 
@@ -55,7 +66,9 @@ export default class Config {
    * @api public
    */
   merge(config: { [string]: any }): void {
-    this.config = Object.assign({}, this.config, config);
+    Object.keys(config).forEach((key) => {
+      this.config[key] = config[key];
+    });
   }
 
   /**

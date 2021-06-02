@@ -7,14 +7,13 @@ const source = require('vinyl-source-stream');
 const streamify = require('gulp-streamify');
 const gutil = require('gulp-util');
 const eslint = require('gulp-eslint');
-const flow = require('gulp-flowtype');
 const prettier = require('gulp-prettier');
 const execSync = require('child_process').execSync;
 const flowRemoveTypes = require('flow-remove-types');
 
 /* eslint comma-dangle: ["error", "never"] */
 
-gulp.task('es6', () => {
+gulp.task('es6', async () => {
   try {
     execSync('./node_modules/.bin/flow', { stdio: 'inherit' });
   } catch (e) {
@@ -25,12 +24,12 @@ gulp.task('es6', () => {
     entries: ['./src/index.js'],
     debug: true
   })
-    .transform(babelify, { presets: ['es2015', 'stage-0'] })
+    .transform(babelify, { presets: ["@babel/preset-env", '@babel/preset-flow'] })
     .on('error', gutil.log)
     .bundle()
     .on('error', gutil.log)
     .pipe(source('dist/queue.js'))
-    .pipe(gulp.dest(''));
+    .pipe(gulp.dest('./'));
 });
 
 gulp.task('lint', () =>
@@ -65,7 +64,7 @@ gulp.task('prettier-bundle', () => {
     .pipe(gulp.dest('./dist'));
 });
 
-gulp.task('minify-bundle', () => {
+gulp.task('minify-bundle', async () => {
   gulp
     .src(["dist/queue.js"])
     .on('error', (e) => { console.log(e) })
@@ -74,7 +73,7 @@ gulp.task('minify-bundle', () => {
     .pipe(gulp.dest("./dist"));
 });
 
-gulp.task('stripTypes', () => {
+gulp.task('stripTypes', async () => {
   const files = [
     'adapters/index.js',
     'adapters/localstorage.js',
@@ -95,7 +94,7 @@ gulp.task('stripTypes', () => {
 
   for (file of files) {
     const a = [
-      `./node_modules/.bin/babel  --plugins transform-flow-strip-types src/${file} > lib/${file}`,
+      `./node_modules/.bin/babel  --plugins @babel/plugin-transform-flow-strip-types src/${file} > lib/${file}`,
       { stdio: 'inherit' }
     ];
 
@@ -104,7 +103,7 @@ gulp.task('stripTypes', () => {
 });
 
 gulp.task('watch', () => {
-  gulp.watch('src/**/*.js', ['lint', 'es6', 'stripTypes', 'prettier', 'prettier-bundle']);
+  gulp.watch('src/**/*.js', gulp.series('lint', 'es6', 'stripTypes', 'prettier', 'prettier-bundle'));
 });
 
-gulp.task('default', ['lint', 'watch']);
+gulp.task('default', gulp.series('lint', 'watch'));
